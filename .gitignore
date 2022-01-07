@@ -5,3 +5,4 @@ images/
 main_bot/
 node_modules/
 test.js
+config.json
