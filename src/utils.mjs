@@ -124,7 +124,7 @@ export async function get_nickname(username, msg) {
     let nickname = username;
     let guildObj = await client.guilds.fetch(msg.guild.id);
     if (guildObj) {
-        user = await guildObj.members.fetch(msg.author.id);
+        let user = await guildObj.members.fetch(msg.author.id);
         if (user) {
             if (user.nickname) {
                 nickname = user.nickname;

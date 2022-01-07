@@ -20,7 +20,7 @@ const slotMessages = [
     ],
 ];
 
-export let slotPoints = [0.75, 1.5, 2, 2.5, 3];
+export let slotPoints = [1.25, 2, 3, 4, 5];
 const slotWeights = [0.5, 0.45, 0.4, 0.35, 0.25];
 for (let i = 0; i < slotPoints.length; ++i) {
     slotPoints[i] *= cfg.globalSlotPointsModifier;
@@ -182,7 +182,7 @@ export async function slots_game(user, bet, msg) {
         combos.sort((a, b) => {
             return b[1] - a[1];
         });
-        betBonus = Math.round(bet * 0.2 * (slotPoints[combos[0][0]] * 0.3 * combos[0][1]));
+        betBonus = Math.round(bet * 0.2 * (slotPoints[combos[0][0]] * 0.2 * combos[0][1]));
     }
 
     if (points > 0) {
