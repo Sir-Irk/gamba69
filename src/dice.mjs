@@ -56,7 +56,7 @@ export async function dice_game(user, bet, msg) {
         user.guildObj.diceGamesWon++;
         await msg.channel.send(`${GIFS.toCashFlowGif}`);
     } else if (sum1 > sum0) {
-        houseBones += bet;
+        user.guildObj.houseBones += bet;
         user.bones -= bet;
         user.diceGamesBonesWon -= bet;
         user.guildObj.houseBones += bet;

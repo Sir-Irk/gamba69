@@ -241,7 +241,7 @@ async function blackjack_game(user, bet, msg) {
             user.bjGamesWon++;
         } else if (houseSum == 21) {
             await msg.reply(`:black_joker: ${user.nickname} Sucks to be you, I just clutched it out and denied your blackjack. You keep your bet`);
-            await msg.channel.send(`${GIFS.youBustedGif}`);
+            await msg.channel.send(`${GIFS.lossStreakGif}`);
             user.isPlayingGame = false;
             user.bj.isDealingHand = false;
         }
@@ -343,7 +343,9 @@ async function blackjack_game_continue(user, msg, option) {
         }
         user.bj.bet *= 2;
         msgRef = await msg.reply(
-            `${user.nickname}, you chose to **double down** and increase your bet to **${user.bj.bet}** ${boneSymbol}. You draw another card and **stand**`
+            `${user.nickname}, you chose to **double down** and increase your bet to **${user.bj.bet.toLocaleString(
+                'en-US'
+            )}** ${boneSymbol}. You draw another card and **stand**`
         );
         await delay(cfg.bjMessageDelay);
         userCards.push(deal_card(user, msg));

@@ -34,7 +34,6 @@ import {
     display_guild_stats,
 } from './src/utils.mjs';
 
-let houseBones = 0;
 let interval = 0;
 
 let botInitialized = false;
