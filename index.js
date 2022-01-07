@@ -31,6 +31,7 @@ import {
     display_help,
     parse_bet,
     prefix,
+    display_guild_stats,
 } from './src/utils.mjs';
 
 let houseBones = 0;
@@ -304,6 +305,10 @@ client.on('messageCreate', async (msg) => {
             await give_user_bones(guild.users, user, nameStr, bonesToGive, msg);
             break;
 
+        case 'gstats':
+        case 'allstats':
+            await display_guild_stats(user.guildObj, msg);
+            break;
         case 'stats':
             await display_user_stats(user, msg);
             break;

@@ -280,6 +280,7 @@ export async function load_users() {
 
         const g = json[guildKey];
         let guildObj = await client.guilds.fetch(guildKey);
+        guild.name = g.guild_name;
         if (g.gamesPlayed !== undefined) guild.gamesPlayed = g.gamesPlayed;
         if (g.houseBones !== undefined) guild.houseBones = g.houseBones;
         if (g.diceGamesPlayed !== undefined) guild.diceGamesPlayed = g.diceGamesPlayed;
@@ -341,6 +342,73 @@ export async function load_users() {
             console.log(`Loaded user: ${u.username} for guild ${json[guildKey].guild_name}`);
         }
     }
+}
+
+export async function display_guild_stats(guild, msg) {
+    const gamesPlayed = guild.bjGamesPlayed + guild.diceGamesPlayed + guild.slotsGamesPlayed + guild.rlGamesPlayed;
+    let winSum = guild.bjGamesWon + guild.diceGamesWon + guild.slotsGamesWon + guild.rlGamesWon;
+
+    let bjBoneSum = 0;
+    let rlBoneSum = 0;
+    let slotsBoneSum = 0;
+    let diceBoneSum = 0;
+    for (let i = 0; i < guild.users.length; ++i) {
+        const u = guild.users[i];
+        bjBoneSum += u.bjGamesBonesWon;
+        rlBoneSum += u.rlGamesBonesWon;
+        slotsBoneSum += u.slotsGamesBonesWon;
+        diceBoneSum += u.diceGamesBonesWon;
+    }
+    let boneSum = bjBoneSum + rlBoneSum + slotsBoneSum + diceBoneSum;
+
+    const winPercentage = gamesPlayed > 0 ? Math.round((winSum / gamesPlayed) * 100) : 0;
+    const bjWinPercentage = guild.bjGamesPlayed > 0 ? Math.round((guild.bjGamesWon / guild.bjGamesPlayed) * 100) : 0;
+    const rlWinPercentage = guild.rlGamesPlayed > 0 ? Math.round((guild.rlGamesWon / guild.rlGamesPlayed) * 100) : 0;
+    const diceWinPercentage = guild.diceGamesPlayed > 0 ? Math.round((guild.diceGamesWon / guild.diceGamesPlayed) * 100) : 0;
+    const slotsWinPercentage = guild.slotsGamesPlayed > 0 ? Math.round((guild.slotsGamesWon / guild.slotsGamesPlayed) * 100) : 0;
+
+    const boneSumStr = boneSum.toLocaleString('en-US');
+    const bjBonesStr = bjBoneSum.toLocaleString('en-US');
+    const rlBonesStr = rlBoneSum.toLocaleString('en-US');
+    const slotsBonesStr = slotsBoneSum.toLocaleString('en-US');
+    const diceBonesStr = diceBoneSum.toLocaleString('en-US');
+
+    const embed = new Discord.MessageEmbed()
+        .setTitle(`${guild.name} Stats`)
+        .setColor('#AA0090')
+        .addFields(
+            {
+                name: `**All**`,
+                value: `Played: ${gamesPlayed}\nWon: ${winSum} (${winPercentage}%)\nBones Won: ${boneSumStr} ${boneSymbol}`,
+                inline: false,
+            },
+            {
+                name: `**Blackjack**`,
+                value: `Played: ${guild.bjGamesPlayed}\nWon: ${guild.bjGamesWon} (${bjWinPercentage}%)\nBones Won: ${bjBonesStr} ${boneSymbol}`,
+                inline: false,
+            },
+            {
+                name: `**Slots**`,
+                value: `Played: ${guild.slotsGamesPlayed}\nWon: ${guild.slotsGamesWon} (${slotsWinPercentage}%)\nBones Won: ${slotsBonesStr} ${boneSymbol}`,
+                inline: false,
+            },
+            {
+                name: `**Russian Roulette**`,
+                value: `Played: ${guild.rlGamesPlayed}\nWon: ${guild.rlGamesWon} (${rlWinPercentage}%)\nBones Won: ${rlBonesStr} ${boneSymbol}`,
+                inline: false,
+            },
+            {
+                name: `**Dice**`,
+                value: `Played: ${guild.diceGamesPlayed}\nWon: ${guild.diceGamesWon} (${diceWinPercentage}%)\nBones Won: ${diceBonesStr} ${boneSymbol}`,
+                inline: false,
+            },
+            {
+                name: `Extra:`,
+                value: `Stats recorded since 1/4/22`,
+                inline: false,
+            }
+        );
+    await msg.reply({ embeds: [embed] });
 }
 
 export async function display_user_stats(user, msg) {

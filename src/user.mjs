@@ -39,6 +39,7 @@ export class user_account {
 export class user_guild {
     constructor(id) {
         this.id = id;
+        this.name = null;
         this.users = [];
         this.houseBones = 0;
         this.gamesPlayed = 0;
