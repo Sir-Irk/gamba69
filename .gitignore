@@ -1,0 +1,7 @@
+user_data.json
+user_data_copy.json
+run_forever.sh
+images/
+main_bot/
+node_modules/
+test.js
