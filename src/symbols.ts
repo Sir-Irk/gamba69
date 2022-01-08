@@ -2,6 +2,7 @@ export const boneSymbol = '🦴';
 export const diceEmoji = '🎲';
 
 export const slotBlanks = ['🟦', '🟩', '🟧', '🟥', '🟨'];
+
 export const slotSymbols = [
     [
         '<:ImTheJokerBaby:768294038746824784>',

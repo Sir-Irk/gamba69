@@ -34,11 +34,13 @@ import {
     prefix,
     display_guild_stats,
 } from './src/utils.js';
-import { array } from 'zod';
+
 import {
     close_horse_race_betting,
     list_horses,
     process_horse_race_bet,
+    purchase_horse,
+    start_horse_purchase,
     start_horse_race,
     start_horse_race_bet_taking,
 } from './src/horse_racing.js';
@@ -142,6 +144,11 @@ client.on('messageCreate', async (msg) => {
         guild.users.push(user);
     }
     write_user_data_json(user);
+
+    if (user.isBuyingHorse) {
+        await purchase_horse(user, msg.content, msg);
+        return;
+    }
 
     switch (msg.content.toLowerCase()) {
         case 'continue':
@@ -431,6 +438,24 @@ client.on('messageCreate', async (msg) => {
                 }
             }
             break;
+
+        case `shop`: {
+            let embed = new Discord.MessageEmbed().setTitle(`Shop`).setColor('#BB2222');
+            embed.addFields({ name: ':horse: Horse', value: `${boneSymbol} ${cfg.horseBasePrice.toLocaleString('en-US')}`, inline: true });
+            msg.reply({ embeds: [embed] });
+            return;
+        }
+
+        case `buy`: {
+            if (args.length < 1) {
+                msg.reply(`**usage**: ?buy <item>`);
+                return;
+            }
+            if (args[0].toLocaleLowerCase() === 'horse') {
+                await start_horse_purchase(user, msg);
+                return;
+            }
+        }
 
         case `stable`:
         case `stables`:

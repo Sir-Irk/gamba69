@@ -11,6 +11,8 @@ export class bot_cfg {
     globalSlotPointsModifier: number;
     slotsMessageDelay: number;
     bjMessageDelay: number;
+    horseBasePrice: number;
+    maxHorsesPerUser: number;
     constructor() {
         this.dailyBonus = 2500;
         this.dailyCollectionInterval = dayInMili;
@@ -20,9 +22,11 @@ export class bot_cfg {
         this.workSalaryMax = 5000;
         this.charityCollectionInterval = 5 * minInMili;
         this.charityAmountInBones = 69;
-        this.globalSlotPointsModifier = 0.5;
+        this.globalSlotPointsModifier = 1.0;
         this.bjMessageDelay = 1000;
         this.slotsMessageDelay = 1500;
+        this.horseBasePrice = 1000000;
+        this.maxHorsesPerUser = 3;
     }
 }
 

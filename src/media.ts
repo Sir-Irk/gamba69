@@ -18,6 +18,7 @@ class Emojis {
     interestedSharkEmoji = '<:Interested_Shark:808313780236845086>';
     whySharkEmoji = '<:why_shark:809598047294193735>';
     doubtfulSharkEmoji = '<:doubtful_shark:809590494715314177>';
+    sihEmoji = '<:sih:821097074292424734>';
 }
 
 export const EMOJIS = new Emojis();

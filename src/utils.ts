@@ -272,6 +272,7 @@ export function write_user_data_json(user: user_account): void {
         charityCollectionTime: user.charityCollectionTime,
         highestBones: user.highestBones,
         gameStats: user.gameStats,
+        numHorsesOwned: user.numHorsesOwned,
     };
     fs.writeFileSync(userDataJsonPath, JSON.stringify(json, null, 2));
     isWritingJSONfile = false;
@@ -302,6 +303,8 @@ export async function load_users(): Promise<void> {
             horse.placementAverage.sum = u.placementAverage.sum;
             horse.speedAverage.count = u.speedAverage.count;
             horse.speedAverage.sum = u.speedAverage.sum;
+            horse.age = u.age;
+            horse.owner = u.owner;
             horse.speed = u.speed;
             guild.horses.push(horse);
         }
@@ -342,6 +345,7 @@ export async function load_users(): Promise<void> {
             user.dailyStreak = u.dailyStreak;
             user.charityCollectionTime = u.charityCollectionTime;
             user.highestBones = u.highestBones;
+            if (u.numHorsesOwned != undefined) user.numHorsesOwned = u.numHorsesOwned;
 
             user.gameStats = u.gameStats as game_stats[];
             guild.users.push(user);

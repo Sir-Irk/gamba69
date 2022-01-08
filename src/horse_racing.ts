@@ -1,10 +1,13 @@
-import { user_account, user_guild } from './user';
-import { delay, game_category, user_is_playing_game, verify_bet } from './utils';
-import { EMOJIS, GIFS } from './media';
-import { boneSymbol } from './symbols';
-import Discord, { Guild } from 'discord.js';
+import { user_account, user_guild } from './user.js';
+import { delay, game_category, shuffle, user_is_playing_game, verify_bet } from './utils.js';
+import { EMOJIS, GIFS } from './media.js';
+import { boneSymbol } from './symbols.js';
+import Discord, { Emoji, Guild, MessageReaction } from 'discord.js';
 import { strictEqual } from 'assert';
 import { number } from 'zod';
+import { cfg } from './bot_cfg.js';
+import { write_user_data_json } from './utils.js';
+import { waitForDebugger } from 'inspector';
 
 class bet_pool_entry {
     user: user_account;
@@ -50,6 +53,7 @@ export class race_horse {
     trackPos: number;
     name: string;
     age: number;
+    owner: string;
 
     wins: number;
     races: number;
@@ -59,11 +63,11 @@ export class race_horse {
 
     speed: number;
 
-    constructor(name: string, trackPos: number) {
+    constructor(name: string, trackPos: number, age: number = 0) {
         this.name = name;
         this.trackPos = trackPos;
-        this.speed = 0.9 + Math.random() * 0.2;
-        this.age = 1 + Math.random() * 40;
+        this.speed = 0.97 + Math.random() * 0.06;
+        this.age = age == 0 ? 1 + Math.random() * 40 : age;
         this.wins = 0;
         this.races = 0;
         this.placementAverage = new average_record();
@@ -112,17 +116,69 @@ function make_track_string(
     return str;
 }
 
-export async function list_horses(user: user_account, msg: Discord.Message) {
+export async function start_horse_purchase(user: user_account, msg: Discord.Message) {
+    if (user.bones < cfg.horseBasePrice) {
+        msg.reply(`${user.nickname}, you do not have enough bones to purchase a horse`);
+        return;
+    }
+
+    if (user.numHorsesOwned >= cfg.maxHorsesPerUser) {
+        msg.reply(`Sorry but you already own the maximum number of horses: ${cfg.maxHorsesPerUser}`);
+        return;
+    }
+    user.isBuyingHorse = true;
+    msg.reply(`${user.nickname}, please enter a name for your horse :horse:`);
+}
+
+export async function purchase_horse(user: user_account, horseName: string, msg: Discord.Message) {
+    let horse = new race_horse(horseName, 0, 1 + Math.random() * 5);
+    horse.owner = user.name;
     let horses = user.guildObj.horses;
+    for (let i = 0; i < horses.length; ++i) {
+        if (horses[i].name === horseName) {
+            msg.reply('That horse name already exists. Try purchasing again with a diffrent name');
+            return;
+        }
+    }
+    horses.push(horse);
+    msg.reply(`Congrats! You bought your new horse ${horseName}! It walks out of the stable and approaches you...`);
+    user.add_money(-cfg.horseBasePrice);
+    user.numHorsesOwned++;
+    await delay(3000);
+    let msgRef = await msg.reply(`${EMOJIS.sihEmoji}`);
+    let str = '';
+    for (let spaces = 12; spaces > 2; --spaces) {
+        str = `${EMOJIS.sihEmoji}`;
+        for (let i = 0; i < spaces; ++i) {
+            str += '  ';
+        }
+        str += ':horse:';
+        await delay(1000);
+        await msgRef.edit(str);
+    }
+    await delay(1000);
+    str = `${EMOJIS.sihEmoji} :heart: :horse:`;
+    await msgRef.edit(str);
+    user.isBuyingHorse = false;
+    write_user_data_json(user);
+}
+
+export async function list_horses(user: user_account, msg: Discord.Message, horses: race_horse[] = null) {
+    if (!horses) {
+        horses = user.guildObj.horses;
+    }
 
     let embed = new Discord.MessageEmbed().setTitle(`:horse: :farmer:  The Stables :woman_farmer: :horse:`).setColor('#BB2222');
 
     let i = 0;
     horses.forEach((h: race_horse) => {
-        let str = `Races: ${h.races.toLocaleString('en-US')}\n`;
-        str += `Wins: ${h.wins.toLocaleString('en-US')}\n`;
+        let percent = h.races > 0 ? Math.floor((h.wins / h.races) * 100) : 0;
+        let str = `Rec: ${h.wins.toLocaleString('en-US')}/${h.races.toLocaleString('en-US')} (${percent}%)\n`;
         str += `Avg Placement: ${h.placementAverage.get_average().toLocaleString('en-US')}\n`;
-        str += `Avg Speed: ${Math.floor(h.speedAverage.get_average() * 13).toLocaleString('en-US')} mph\n`;
+        str += `Avg Speed: ${Math.floor(h.speedAverage.get_average() * 8).toLocaleString('en-US')} mph\n`;
+        str += `Age: ${Math.floor(h.age)} years\n`;
+        str += `Owner:`;
+        str += h.owner ? `${h.owner}` : 'Kevin';
         embed.addFields({ name: `${i + 1}. :racehorse: ${h.name}`, value: str, inline: true });
         ++i;
     });
@@ -161,7 +217,7 @@ export async function process_horse_race_bet(user: user_account, horseNum: numbe
 
     if (!verify_bet(user, bet, msg)) return;
 
-    let horses = user.guildObj.horses;
+    let horses = user.guildObj.horsesInRace;
 
     if (horseNum >= horses.length || horseNum < 0) {
         msg.reply(`Invalid horse number`);
@@ -182,11 +238,22 @@ export async function process_horse_race_bet(user: user_account, horseNum: numbe
 
 export async function start_horse_race_bet_taking(user: user_account, msg: Discord.Message) {
     if (user.guildObj.horseRaceIsActive || user.isPlayingGame) return;
+    if (user.guildObj.horseRaceIsTakingBets) {
+        await msg.reply(`Bets are already being taken. Use ?horse <horse number> <bet> to place your bet`);
+        return;
+    }
     await msg.reply(
         `Now taking bets for the next horse race!\n Enter **?horse** <horse number> <bet>\n Enter **?close** to end betting and begin the race(you must be the person who opened betting)`
     );
 
-    await list_horses(user, msg);
+    let horseList = [...user.guildObj.horses];
+    shuffle(horseList);
+    user.guildObj.horsesInRace = [];
+    for (let i = 0; i < 6; ++i) {
+        user.guildObj.horsesInRace.push(horseList[i]);
+    }
+
+    await list_horses(user, msg, user.guildObj.horsesInRace);
     user.guildObj.horseRaceBetPool.entries = [];
     user.guildObj.horseRaceIsTakingBets = true;
 }
@@ -194,7 +261,7 @@ export async function start_horse_race_bet_taking(user: user_account, msg: Disco
 export async function start_horse_race(user: user_account, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || user.guildObj.horseRaceIsActive || user.guildObj.horseRaceIsTakingBets) return;
 
-    let horses = user.guildObj.horses;
+    let horses = user.guildObj.horsesInRace;
     let trackLen = user.guildObj.horseTrackLen;
 
     horses.forEach((e: race_horse) => {
@@ -241,7 +308,7 @@ class horse_race_prize_winners {
 }
 
 export async function run_horse_race(user: user_account, msgRef: Discord.Message) {
-    let horses = user.guildObj.horses;
+    let horses = user.guildObj.horsesInRace;
     let trackLen = user.guildObj.horseTrackLen;
     let pool = user.guildObj.horseRaceBetPool;
 
@@ -264,7 +331,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
 
     user.guildObj.horseRaceIsActive = false;
 
-    let embed = new Discord.MessageEmbed().setTitle(`:horse_racing:  Results  :horse_racing:`).setColor('#AA8822');
+    let embed = new Discord.MessageEmbed().setTitle(`:horse_racing:  Race Results  :horse_racing:`).setColor('#AA8822');
 
     let totalPrizePool = 0;
     pool.entries.forEach((e: bet_pool_entry) => {
@@ -326,7 +393,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     let str = '';
     winners[0].forEach((w: horse_race_prize_winners) => {
         let p = w.bet / winSums[0];
-        let prize = Math.floor(totalPrizePool * 0.7 * p);
+        let prize = Math.floor(totalPrizePool * 0.5 * p);
         w.user.add_money(prize);
         w.user.update_stats(true, prize, game_category.horseRacing);
         str += `${prize.toLocaleString('en-US')} ${boneSymbol} goes to ${w.user.name}\n`;
@@ -338,7 +405,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     str = '';
     winners[1].forEach((w: horse_race_prize_winners) => {
         let p = w.bet / winSums[1];
-        let prize = Math.floor(totalPrizePool * 0.2 * p);
+        let prize = Math.floor(totalPrizePool * 0.3 * p);
         w.user.add_money(prize);
         w.user.update_stats(true, prize, game_category.horseRacing);
         str += `${prize.toLocaleString('en-US')} ${boneSymbol} goes to ${w.user.name}\n`;
@@ -350,7 +417,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     str = '';
     winners[2].forEach((w: horse_race_prize_winners) => {
         let p = w.bet / winSums[2];
-        let prize = Math.floor(totalPrizePool * 0.1 * p);
+        let prize = Math.floor(totalPrizePool * 0.2 * p);
         w.user.add_money(prize);
         w.user.update_stats(true, prize, game_category.horseRacing);
         str += `${prize.toLocaleString('en-US')} ${boneSymbol} goes to ${w.user.name}\n`;
@@ -365,4 +432,5 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     });
 
     await msgRef.channel.send({ embeds: [embed] });
+    write_user_data_json(user);
 }

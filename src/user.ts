@@ -34,6 +34,8 @@ export class user_account {
     workPaycheck: number;
     workStartTime: number;
     highestBones: number;
+    isBuyingHorse = false;
+    numHorsesOwned: number = 0;
 
     gameStats: game_stats[];
     constructor(
@@ -61,6 +63,8 @@ export class user_account {
         this.bj = new blackjack_game_data();
         this.workPaycheck = 0;
         this.workStartTime = 0;
+        this.numHorsesOwned = 0;
+        this.isBuyingHorse = false;
         this.gameStats = [];
     }
 
@@ -89,6 +93,7 @@ export class user_guild {
     horseRaceBetPool: bet_pool;
     horseTrackLen: number;
     horses: race_horse[];
+    horsesInRace: race_horse[];
 
     constructor(id: string) {
         this.id = id;
@@ -100,5 +105,6 @@ export class user_guild {
         this.horseRaceBetPool = new bet_pool();
         this.horseTrackLen = 65;
         this.horses = [];
+        this.horsesInRace = [];
     }
 }
