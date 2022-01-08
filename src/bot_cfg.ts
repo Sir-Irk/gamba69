@@ -1,5 +1,16 @@
-import { dayInMili, hourInMili, minInMili } from './constants.mjs';
+import { dayInMili, hourInMili, minInMili } from './constants.js';
 export class bot_cfg {
+    dailyBonus: number;
+    dailyCollectionInterval: number;
+    rouletteContinueTimeout: number;
+    workDuration: number;
+    workSalaryMin: number;
+    workSalaryMax: number;
+    charityCollectionInterval: number;
+    charityAmountInBones: number;
+    globalSlotPointsModifier: number;
+    slotsMessageDelay: number;
+    bjMessageDelay: number;
     constructor() {
         this.dailyBonus = 2500;
         this.dailyCollectionInterval = dayInMili;

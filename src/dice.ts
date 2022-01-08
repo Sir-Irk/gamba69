@@ -1,8 +1,10 @@
-import { diceEmoji, boneSymbol } from './symbols.mjs';
-import { verify_bet, user_is_playing_game, delay } from './utils.mjs';
-import { EMOJIS, GIFS } from './media.mjs';
+import { diceEmoji, boneSymbol } from './symbols.js';
+import { verify_bet, user_is_playing_game, delay } from './utils.js';
+import { EMOJIS, GIFS } from './media.js';
+import { user_account } from './user.js';
+import Discord from 'discord.js';
 
-export async function dice_game(user, bet, msg) {
+export async function dice_game(user: user_account, bet: number, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
     user.isPlayingGame = true;
 
@@ -10,7 +12,9 @@ export async function dice_game(user, bet, msg) {
 
     let msgRef = null;
     if (bet == user.bones) {
-        msgRef = await msg.reply(`${diceEmoji} ${user.nickname} goes big dick and bets **all** of their **${betStr}** ${boneSymbol}, Rolling the dice...`);
+        msgRef = await msg.reply(
+            `${diceEmoji} ${user.nickname} goes big dick and bets **all** of their **${betStr}** ${boneSymbol}, Rolling the dice...`
+        );
     } else {
         msgRef = await msg.reply(`${diceEmoji} ${user.nickname} You bet **${betStr}** ${boneSymbol}, Rolling the dice...`);
     }

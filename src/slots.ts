@@ -1,7 +1,9 @@
-import { cfg } from './bot_cfg.mjs';
-import { boneSymbol, slotSymbols, slotBlanks } from './symbols.mjs';
-import { verify_bet, user_is_playing_game, delay } from './utils.mjs';
-import { GIFS } from './media.mjs';
+import { cfg } from './bot_cfg.js';
+import { boneSymbol, slotSymbols, slotBlanks } from './symbols.js';
+import { verify_bet, user_is_playing_game, delay } from './utils.js';
+import { GIFS } from './media.js';
+import Discord from 'discord.js';
+import { user_account } from './user.js';
 
 const slotMessages = [
     [
@@ -27,7 +29,7 @@ for (let i = 0; i < slotPoints.length; ++i) {
 }
 const slotsEmoji = '🎰';
 
-function random_slot(weights) {
+function random_slot(weights: number[]): number {
     let sum = 0;
     for (let i = 0; i < weights.length; ++i) {
         sum += weights[i];
@@ -43,7 +45,7 @@ function random_slot(weights) {
     console.log('Random slot error');
 }
 
-export async function slots_game(user, bet, msg) {
+export async function slots_game(user: user_account, bet: number, msg: Discord.Message): Promise<void> {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
     user.isPlayingGame = true;
     const betStr = bet.toLocaleString('en-US');
@@ -191,7 +193,9 @@ export async function slots_game(user, bet, msg) {
         user.slotsGamesBonesWon += prize;
         user.guildObj.houseBones -= prize;
         await msg.reply(
-            `${slotsEmoji} ${user.nickname}, EZ! You won **${prize.toLocaleString('en-US')}** ${boneSymbol}\n${slotSet[messageIdx]} ${messages[messageIdx]}`
+            `${slotsEmoji} ${user.nickname}, EZ! You won **${prize.toLocaleString('en-US')}** ${boneSymbol}\n${slotSet[messageIdx]} ${
+                messages[messageIdx]
+            }`
         );
         msg.channel.send(`${GIFS.winSlotsGif}`);
         user.slotsGamesWon++;
@@ -204,9 +208,9 @@ export async function slots_game(user, bet, msg) {
             user.slotsGamesBonesWon -= bet - betBonus;
             user.guildObj.houseBones += bet - betBonus;
             await msg.reply(
-                `${slotsEmoji} ${user.nickname}, You Lost **${bet.toLocaleString('en-US')}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${
-                    slotSymbols[slotSetRoll][combos[0][0]]
-                } **combo**`
+                `${slotsEmoji} ${user.nickname}, You Lost **${bet.toLocaleString(
+                    'en-US'
+                )}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${slotSymbols[slotSetRoll][combos[0][0]]} **combo**`
             );
         } else {
             user.bones -= bet;

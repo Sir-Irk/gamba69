@@ -1,8 +1,10 @@
-import { boneSymbol } from './symbols.mjs';
-import { cfg } from './bot_cfg.mjs';
-import { verify_bet, user_is_playing_game, delay, shuffle } from './utils.mjs';
+import { boneSymbol } from './symbols.js';
+import { cfg } from './bot_cfg.js';
+import { verify_bet, user_is_playing_game, delay, shuffle } from './utils.js';
 //import { get_thousands_int, get_percentage_int, shuffle } from './utils.mjs';
-import { GIFS, EMOJIS } from './media.mjs';
+import { GIFS, EMOJIS } from './media.js';
+import { user_account } from './user.js';
+import Discord from 'discord.js';
 
 const BJ_DECK_COUNT = 2;
 
@@ -62,20 +64,20 @@ const cardSymbols = [
     '🃎',
 ];
 
-const cardValues = [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-    10, 10, 10, 10,
+const cardValues: number[] = [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1, 2,
+    3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10,
 ];
 
-function create_deck(numDecks) {
-    let deck = [];
+function create_deck(numDecks: number) {
+    let deck: number[] = [];
     for (let i = 0; i < 52 * numDecks; ++i) {
         deck.push(i % 52);
     }
     return deck;
 }
 
-function deal_card(user, msg) {
+function deal_card(user: user_account, msg: Discord.Message) {
     let deck = user.bj.deck;
     if (deck.length === 0) {
         deck = create_deck(BJ_DECK_COUNT);
@@ -90,19 +92,25 @@ function deal_card(user, msg) {
 export const hiddenCard = '🂠';
 
 class blackjack_game_data {
+    deck: number[];
+    userCards: number[];
+    houseCards: number[];
+    round: number;
+    bet: number;
+    isDealingHand: boolean;
+    lossStreak: number;
     constructor() {
         this.deck = [];
         this.userCards = [];
         this.houseCards = [];
         this.round = 0;
         this.bet = 0;
-        this.userHadStood = false;
         this.isDealingHand = false;
         this.lossStreak = 0;
     }
 }
 
-function blackjack_sum_cards(cards, count, startIdx = 0) {
+function blackjack_sum_cards(cards: number[], count: number, startIdx: number = 0): number {
     let result = 0;
     let numAces = 0;
     for (let i = startIdx; i < count; i++) {
@@ -125,8 +133,8 @@ function blackjack_sum_cards(cards, count, startIdx = 0) {
     return result;
 }
 
-function make_blackjack_hand_string(cards, count, sum) {
-    let result = '';
+function make_blackjack_hand_string(cards: number[], count: number, sum: number): string {
+    let result: string = '';
     for (let i = 0; i < count; i++) {
         result += `${cardSymbols[cards[i]]} `;
     }
@@ -138,7 +146,7 @@ function make_blackjack_hand_string(cards, count, sum) {
             ++numAces;
         }
     }
-    if (result + 10 <= 21) {
+    if (sum + 10 <= 21) {
         if (numAces === 2 && count === 2) {
             result += ` or ${sum - 19}`;
         } else if (numAces > 0) {
@@ -163,7 +171,7 @@ const blackjack_option = {
     resign: 'resign',
 };
 
-async function blackjack_game(user, bet, msg) {
+async function blackjack_game(user: user_account, bet: number, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
 
     user.isPlayingGame = true;
@@ -177,7 +185,9 @@ async function blackjack_game(user, bet, msg) {
             `:black_joker: ${user.nickname} Slams their massive balls on the table and bets **all** of their **${betStr}** ${boneSymbol} on a game of Blackjack, Dealing hand...`
         );
     } else {
-        msgRef = await msg.reply(`:black_joker: ${user.nickname} puts down **${betStr}** ${boneSymbol} on a game of Blackjack, Dealing hand...`);
+        msgRef = await msg.reply(
+            `:black_joker: ${user.nickname} puts down **${betStr}** ${boneSymbol} on a game of Blackjack, Dealing hand...`
+        );
     }
 
     if (user.bj.deck.length === 0) {
@@ -188,7 +198,7 @@ async function blackjack_game(user, bet, msg) {
 
     await delay(cfg.bjMessageDelay);
 
-    const userCards = [deal_card(user, msg), deal_card(user, msg)];
+    const userCards: number[] = [deal_card(user, msg), deal_card(user, msg)];
 
     user.bj.userCards = userCards;
     let userSum = cardValues[userCards[0]] + cardValues[userCards[1]];
@@ -207,7 +217,7 @@ async function blackjack_game(user, bet, msg) {
 
     await delay(cfg.bjMessageDelay);
 
-    const houseCards = [deal_card(user, msg), deal_card(user, msg)];
+    const houseCards: number[] = [deal_card(user, msg), deal_card(user, msg)];
 
     user.bj.houseCards = houseCards;
     let houseSum = cardValues[houseCards[0]];
@@ -232,7 +242,9 @@ async function blackjack_game(user, bet, msg) {
             user.isPlayingGame = false;
             user.bj.isDealingHand = false;
             const prizeStr = (bet * 2).toLocaleString('en-US');
-            await msg.reply(`:black_joker: ${user.nickname} Fuck me, you won with a **natural blackjack**. Take your **${prizeStr}** ${boneSymbol}`);
+            await msg.reply(
+                `:black_joker: ${user.nickname} Fuck me, you won with a **natural blackjack**. Take your **${prizeStr}** ${boneSymbol}`
+            );
             await msg.channel.send(`${GIFS.toCashFlowGif}`);
             user.bjGamesPlayed++;
             user.guildObj.bjGamesPlayed++;
@@ -240,7 +252,9 @@ async function blackjack_game(user, bet, msg) {
             user.guildObj.bjGamesWon++;
             user.bjGamesWon++;
         } else if (houseSum == 21) {
-            await msg.reply(`:black_joker: ${user.nickname} Sucks to be you, I just clutched it out and denied your blackjack. You keep your bet`);
+            await msg.reply(
+                `:black_joker: ${user.nickname} Sucks to be you, I just clutched it out and denied your blackjack. You keep your bet`
+            );
             await msg.channel.send(`${GIFS.lossStreakGif}`);
             user.isPlayingGame = false;
             user.bj.isDealingHand = false;
@@ -252,7 +266,7 @@ async function blackjack_game(user, bet, msg) {
     }
 }
 
-async function blackjack_game_continue(user, msg, option) {
+async function blackjack_game_continue(user: user_account, msg: Discord.Message, option: string) {
     if (user.bj.round == 0) {
         msg.reply(`${user.nickname}, You aren't currently playing blackjack. Use !blackjack <bet> or !bj <bet> to start a game.`);
         return;
@@ -297,7 +311,9 @@ async function blackjack_game_continue(user, msg, option) {
             user.bones -= user.bj.bet;
             user.bjGamesBonesWon -= user.bj.bet;
             user.guildObj.houseBones += user.bj.bet;
-            str = `:black_joker: ${user.nickname}, **OWH!** You **busted!** You lose **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`;
+            str = `:black_joker: ${user.nickname}, **OWH!** You **busted!** You lose **${user.bj.bet.toLocaleString(
+                'en-US'
+            )}** ${boneSymbol}`;
             await msg.reply(str);
             msg.channel.send(`${GIFS.youBustedGif}`);
             blackjack_game_end(user);
@@ -385,7 +401,9 @@ async function blackjack_game_continue(user, msg, option) {
         }
 
         if (userSum > 21) {
-            str = `:black_joker: ${user.nickname}, **OWH!** You **busted!** You lose **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`;
+            str = `:black_joker: ${user.nickname}, **OWH!** You **busted!** You lose **${user.bj.bet.toLocaleString(
+                'en-US'
+            )}** ${boneSymbol}`;
             await msg.reply(str);
             msg.channel.send(`${GIFS.youBustedGif}`);
             blackjack_game_end(user);
@@ -407,7 +425,9 @@ async function blackjack_game_continue(user, msg, option) {
             user.bones += user.bj.bet;
             user.bjGamesBonesWon += user.bj.bet;
             user.guildObj.houseBones -= user.bj.bet;
-            await msg.reply(`:black_joker: ${user.nickname}, **FUCK**, I busted... You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`);
+            await msg.reply(
+                `:black_joker: ${user.nickname}, **FUCK**, I busted... You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`
+            );
             msg.channel.send(`${GIFS.bustinMakesMeFeelGoodGif}`);
 
             user.guildObj.bjGamesWon++;

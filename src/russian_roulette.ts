@@ -1,9 +1,15 @@
-import { boneSymbol } from './symbols.mjs';
-import { cfg } from './bot_cfg.mjs';
-import { verify_bet, user_is_playing_game, delay } from './utils.mjs';
-import { EMOJIS, GIFS } from './media.mjs';
+import { boneSymbol } from './symbols.js';
+import { cfg } from './bot_cfg.js';
+import { verify_bet, user_is_playing_game, delay } from './utils.js';
+import { EMOJIS, GIFS } from './media.js';
 
 export class roulette_game_data {
+    roll: number;
+    counter: number;
+    timeOfLastResponse: number;
+    baseBet: number;
+    bet: number;
+    isPullingTheTrigger: boolean;
     constructor() {
         this.roll = 0;
         this.counter = 0;
@@ -63,7 +69,9 @@ export async function roulette_game(user, bet, msg) {
         user.guildObj.houseBones -= user.rl.bet;
         user.rl.timeOfLastResponse = Date.now();
         const prizeStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
-        await msg.channel.send(`${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`);
+        await msg.channel.send(
+            `${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
+        );
         await delay(500);
         const nextBet = user.rl.bet * 2;
         const nextBetStr = (user.rl.baseBet + nextBet).toLocaleString('en-US');
@@ -134,7 +142,9 @@ export async function roulette_game_continue(user, msg) {
         user.rl.bet += user.rl.bet;
         const prizeStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
         const nextBetStr = (user.rl.baseBet + user.rl.bet * 2).toLocaleString('en-US');
-        await msg.channel.send(`${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`);
+        await msg.channel.send(
+            `${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
+        );
         await msg.channel.send(
             `${EMOJIS.interestedSharkEmoji} ${user.nickname}, Type **continue** to try for **${nextBetStr}** ${boneSymbol} or **end** to stop now`
         );

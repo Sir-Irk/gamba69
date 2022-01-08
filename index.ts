@@ -1,18 +1,18 @@
-//import Discord from 'discord.js';
-//import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
-import { readFile } from 'fs/promises';
-const config = JSON.parse(await readFile(new URL('config.json', import.meta.url)));
+import Discord, { TextChannel } from 'discord.js';
+// import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
+import { readFileSync } from 'fs';
+const config = JSON.parse(readFileSync('config.json').toString());
 
-import { user_account, user_guild } from './src/user.mjs';
-import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack.mjs';
-import { roulette_game, roulette_game_continue } from './src/russian_roulette.mjs';
-import { dice_game } from './src/dice.mjs';
-import { slots_game } from './src/slots.mjs';
-import { make_it_rain } from './src/rain.mjs';
-import { cfg } from './src/bot_cfg.mjs';
-import { dayInMili, hourInMili, minInMili } from './src/constants.mjs';
-import { boneSymbol } from './src/symbols.mjs';
-import { EMOJIS, GIFS } from './src/media.mjs';
+import { user_account, user_guild } from './src/user.js';
+import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack.js';
+import { roulette_game, roulette_game_continue } from './src/russian_roulette.js';
+import { dice_game } from './src/dice.js';
+import { slots_game } from './src/slots.js';
+import { make_it_rain } from './src/rain.js';
+import { cfg } from './src/bot_cfg.js';
+import { dayInMili, hourInMili, minInMili } from './src/constants.js';
+import { boneSymbol } from './src/symbols.js';
+import { EMOJIS, GIFS } from './src/media.js';
 
 import {
     client,
@@ -32,9 +32,7 @@ import {
     parse_bet,
     prefix,
     display_guild_stats,
-} from './src/utils.mjs';
-
-let interval = 0;
+} from './src/utils.js';
 
 let botInitialized = false;
 
@@ -50,9 +48,7 @@ client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
 
-const dailyCollectionInterval = dayInMili;
-
-async function start_working(user, msg) {
+async function start_working(user: user_account, msg: Discord.Message<boolean>) {
     if (user_is_playing_game(user, msg)) return;
 
     const timeSpent = Date.now() - user.workStartTime;
@@ -91,9 +87,9 @@ async function start_working(user, msg) {
     }
 }
 
-async function daily_bones(user, msg) {
+async function daily_bones(user: user_account, msg: Discord.Message<boolean>) {
     const timeSinceLastDaily = Date.now() - user.dailyCollectionTime;
-    if (user.dailyCollectionTime == 0 || timeSinceLastDaily >= dailyCollectionInterval) {
+    if (user.dailyCollectionTime == 0 || timeSinceLastDaily >= cfg.dailyCollectionInterval) {
         const mul = Math.min(7, user.dailyStreak + 1);
         user.bones += cfg.dailyBonus * mul;
         user.guildObj.houseBones -= cfg.dailyBonus * mul;
@@ -108,7 +104,7 @@ async function daily_bones(user, msg) {
         user.dailyStreak++;
         user.dailyCollectionTime = Date.now();
     } else {
-        const timeLeft = dailyCollectionInterval - timeSinceLastDaily;
+        const timeLeft = cfg.dailyCollectionInterval - timeSinceLastDaily;
         const hours = Math.floor((timeLeft * 0.001) / 60 / 60);
         const hoursInMili = hours * hourInMili;
         const minutes = Math.round(((timeLeft - hoursInMili) * 0.001) / 60);
@@ -118,17 +114,17 @@ async function daily_bones(user, msg) {
 
 client.on('messageCreate', async (msg) => {
     if (msg.author.bot) return;
-    // if (msg.guildId !== `922243045787852890`) return;
+    if (msg.guildId !== `922243045787852890`) return;
     if (msg.content.startsWith(prefix)) return;
     if (!botInitialized) return;
 
-    let guild = get_guild(userGuilds, msg.guild.id);
+    let guild: user_guild = get_guild(userGuilds, msg.guild.id);
     if (!guild) {
         guild = new user_guild(msg.guild.id);
         userGuilds.push(guild);
     }
 
-    let user = get_user(guild.users, msg.author.id);
+    let user: user_account = get_user(guild.users, msg.author.id);
     if (!user) {
         const nickname = await get_nickname(msg.author.username, msg);
         user = new user_account(msg.author.username, msg.author.id, nickname, msg.guild.id, msg.guild.name, guild, 0);
@@ -183,7 +179,7 @@ client.on('messageCreate', async (msg) => {
 const casinoChannel = `<#923887321517031434>`;
 const noGambaPic = `https://i.imgur.com/I49CZW7.png`;
 client.on('messageCreate', async (msg) => {
-    //  if (msg.guildId !== `922243045787852890`) return;
+    if (msg.guildId !== `922243045787852890`) return;
     if (msg.author.bot) return;
     if (!msg.content.startsWith(prefix)) return;
     if (!botInitialized) {
@@ -191,10 +187,14 @@ client.on('messageCreate', async (msg) => {
         return;
     }
 
-    if (msg.channel.name.includes('general')) {
-        await msg.reply(`Please use ${casinoChannel} for gamba commands`);
-        await msg.channel.send(`${noGambaPic}`);
-        return;
+    // if (msg.channel.name.includes('general')) {
+    const channel: TextChannel = msg.channel as TextChannel;
+    if (channel.name != undefined) {
+        if (channel.name.includes('general')) {
+            await msg.reply(`Please use ${casinoChannel} for gamba commands`);
+            await msg.channel.send(`${noGambaPic}`);
+            return;
+        }
     }
 
     const body = msg.content.slice(prefix.length);
@@ -326,7 +326,9 @@ client.on('messageCreate', async (msg) => {
                 if (args.length >= 2) {
                     numUsers = parseInt(args[1]);
                     if (isNaN(numUsers) || numUsers <= 0) {
-                        msg.reply(`Error: Invalid number of users to rain on. Note: you can also leave the number of users blank to give to all users`);
+                        msg.reply(
+                            `Error: Invalid number of users to rain on. Note: you can also leave the number of users blank to give to all users`
+                        );
                         return;
                     }
                 }
@@ -338,11 +340,11 @@ client.on('messageCreate', async (msg) => {
         case 'sl':
             {
                 /*
-                if (msg.guildId !== `922243045787852890`) {
-                    await msg.reply(`Sorry this game is down for maintenance... Be back soon`);
-                    return;
-                }
-                */
+      if (msg.guildId !== `922243045787852890`) {
+          await msg.reply(`Sorry this game is down for maintenance... Be back
+      soon`); return;
+      }
+      */
 
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);
@@ -375,11 +377,11 @@ client.on('messageCreate', async (msg) => {
         case 'bj':
             {
                 /*
-                if (msg.guildId !== `922243045787852890`) {
-                    await msg.reply(`Sorry this game is down for maintenance... Be back soon`);
-                    return;
-                }
-                */
+      if (msg.guildId !== `922243045787852890`) {
+          await msg.reply(`Sorry this game is down for maintenance... Be back
+      soon`); return;
+      }
+      */
 
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);

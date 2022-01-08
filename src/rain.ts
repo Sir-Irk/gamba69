@@ -1,8 +1,9 @@
-import { boneSymbol } from './symbols.mjs';
-import { verify_bet, user_is_playing_game, shuffle, write_user_data_json } from './utils.mjs';
+import { boneSymbol } from './symbols.js';
+import { verify_bet, user_is_playing_game, shuffle, write_user_data_json } from './utils.js';
 import Discord from 'discord.js';
+import { user_account } from './user.js';
 
-export function make_it_rain(users, giver, amount, numUsers, msg) {
+export function make_it_rain(users: user_account[], giver: user_account, amount: number, numUsers: number, msg: Discord.Message) {
     if (users.length == 0) return;
     if (!verify_bet(giver, amount, msg)) {
         return;
@@ -44,7 +45,11 @@ export function make_it_rain(users, giver, amount, numUsers, msg) {
         if (u.id == giver.id) continue;
         u.bones += perUserAmount;
         //str += `**${u.nickname}**\n`;
-        embed.addFields({ name: `**${u.nickname}**`, value: `You receive **${perUserAmount.toLocaleString('en-US')}** ${boneSymbol}`, inline: false });
+        embed.addFields({
+            name: `**${u.nickname}**`,
+            value: `You receive **${perUserAmount.toLocaleString('en-US')}** ${boneSymbol}`,
+            inline: false,
+        });
         write_user_data_json(u);
     }
     msg.channel.send({ embeds: [embed] });
