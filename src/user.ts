@@ -2,7 +2,7 @@ import { roulette_game_data } from './russian_roulette.js';
 import { blackjack_game_data } from './blackjack.js';
 import { game_category } from './utils.js';
 import { TypeFlags } from 'typescript';
-import { bet_pool, race_horse } from '../horse_racing.js';
+import { bet_pool, race_horse } from './horse_racing.js';
 
 export class game_stats {
     played: number;

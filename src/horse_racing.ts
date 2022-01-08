@@ -1,7 +1,7 @@
-import { user_account, user_guild } from './src/user';
-import { delay, game_category, user_is_playing_game, verify_bet } from './src/utils';
-import { EMOJIS, GIFS } from './src/media';
-import { boneSymbol } from './src/symbols';
+import { user_account, user_guild } from './user';
+import { delay, game_category, user_is_playing_game, verify_bet } from './utils';
+import { EMOJIS, GIFS } from './media';
+import { boneSymbol } from './symbols';
 import Discord, { Guild } from 'discord.js';
 import { strictEqual } from 'assert';
 import { number } from 'zod';

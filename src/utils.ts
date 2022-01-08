@@ -8,7 +8,7 @@ import { GIFS, EMOJIS } from './media.js';
 import { game_stats, user_account, user_guild } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
 import { number } from 'zod';
-import { average_record, race_horse } from '../horse_racing.js';
+import { average_record, race_horse } from './horse_racing.js';
 
 export const userDataJsonPath = 'user_data.json';
 

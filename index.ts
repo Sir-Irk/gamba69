@@ -41,7 +41,7 @@ import {
     process_horse_race_bet,
     start_horse_race,
     start_horse_race_bet_taking,
-} from './horse_racing.js';
+} from './src/horse_racing.js';
 import { finished } from 'stream';
 
 let botInitialized = false;
