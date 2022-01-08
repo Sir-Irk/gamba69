@@ -1,5 +1,5 @@
 import { diceEmoji, boneSymbol } from './symbols.js';
-import { verify_bet, user_is_playing_game, delay } from './utils.js';
+import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
 import { EMOJIS, GIFS } from './media.js';
 import { user_account } from './user.js';
 import Discord from 'discord.js';
@@ -33,44 +33,34 @@ export async function dice_game(user: user_account, bet: number, msg: Discord.Me
 
     await delay(1000);
 
+    let won = true;
+    let prize = 0;
     if (sum0 > sum1) {
         if (dice0 == 6 && dice1 == 6) {
-            const prize = bet * 3;
-            user.bones += prize;
-            user.diceGamesBonesWon += prize;
-            user.guildObj.houseBones -= prize;
+            prize = bet * 3;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You rolled a **double 6** and win **${prizeStr}** ${boneSymbol}`);
         } else if (dice0 == dice1) {
-            const prize = bet * 2;
-            user.bones += prize;
-            user.diceGamesBonesWon += prize;
-            user.guildObj.houseBones -= prize;
+            prize = bet * 2;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You rolled a **double** and win **${prizeStr}** ${boneSymbol}`);
         } else {
-            const prize = bet;
-            user.bones += prize;
-            user.diceGamesBonesWon += prize;
-            user.guildObj.houseBones -= prize;
+            prize = bet;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You win **${prizeStr}** ${boneSymbol}`);
         }
-        user.diceGamesWon++;
-        user.guildObj.diceGamesWon++;
         await msg.channel.send(`${GIFS.toCashFlowGif}`);
     } else if (sum1 > sum0) {
-        user.guildObj.houseBones += bet;
-        user.bones -= bet;
-        user.diceGamesBonesWon -= bet;
-        user.guildObj.houseBones += bet;
+        prize = -bet;
+        won = false;
         await msg.reply(`:skull_crossbones: ${user.nickname}, My bones! You lose **${bet.toLocaleString('en-US')}** ${boneSymbol}.`);
         await msg.channel.send(`${GIFS.youBustedGif}`);
     } else {
+        won = false;
         await msg.reply(`${EMOJIS.cringeEmoji} ${user.nickname}, It's a tie... that's pretty cringe`);
     }
-    user.diceGamesPlayed++;
-    user.guildObj.diceGamesPlayed++;
-    user.guildObj.gamesPlayed++;
+
+    user.add_money(prize);
+    user.update_stats(won, prize, game_category.dice);
     user.isPlayingGame = false;
 }

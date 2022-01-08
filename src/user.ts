@@ -1,5 +1,21 @@
 import { roulette_game_data } from './russian_roulette.js';
 import { blackjack_game_data } from './blackjack.js';
+import { game_category } from './utils.js';
+import { TypeFlags } from 'typescript';
+import { bet_pool, race_horse } from '../horse_racing.js';
+
+export class game_stats {
+    played: number;
+    wins: number;
+    moneyWon: number;
+    type: game_category;
+    constructor(type: game_category, played: number = 0, won: number = 0, moneyWon: number = 0) {
+        this.type = type;
+        this.played = played;
+        this.wins = won;
+        this.moneyWon = moneyWon;
+    }
+}
 
 export class user_account {
     id: string;
@@ -17,18 +33,9 @@ export class user_account {
     bj: blackjack_game_data;
     workPaycheck: number;
     workStartTime: number;
-    diceGamesPlayed: number;
-    rlGamesPlayed: number;
-    bjGamesPlayed: number;
-    slotsGamesPlayed: number;
-    diceGamesWon: number;
-    rlGamesWon: number;
-    bjGamesWon: number;
-    slotsGamesWon: number;
-    diceGamesBonesWon: number;
-    rlGamesBonesWon: number;
-    bjGamesBonesWon: number;
-    slotsGamesBonesWon: number;
+    highestBones: number;
+
+    gameStats: game_stats[];
     constructor(
         username: string,
         userId: string,
@@ -45,6 +52,7 @@ export class user_account {
         this.name = username;
         this.nickname = nickname;
         this.bones = numBones;
+        this.highestBones = 0;
         this.isPlayingGame = false;
         this.dailyCollectionTime = 0;
         this.dailyStreak = 0;
@@ -53,21 +61,20 @@ export class user_account {
         this.bj = new blackjack_game_data();
         this.workPaycheck = 0;
         this.workStartTime = 0;
+        this.gameStats = [];
+    }
 
-        this.diceGamesPlayed = 0;
-        this.rlGamesPlayed = 0;
-        this.bjGamesPlayed = 0;
-        this.slotsGamesPlayed = 0;
+    public add_money(amount: number) {
+        this.bones += amount;
+        this.highestBones = Math.max(this.bones, this.highestBones);
+        this.guildObj.houseBones -= amount;
+    }
 
-        this.diceGamesWon = 0;
-        this.rlGamesWon = 0;
-        this.bjGamesWon = 0;
-        this.slotsGamesWon = 0;
-
-        this.diceGamesBonesWon = 0;
-        this.rlGamesBonesWon = 0;
-        this.bjGamesBonesWon = 0;
-        this.slotsGamesBonesWon = 0;
+    public update_stats(won: boolean, prize: number, type: game_category) {
+        let s = this.gameStats[type];
+        s.played++;
+        s.wins += won ? 1 : 0;
+        s.moneyWon += prize;
     }
 }
 
@@ -76,28 +83,22 @@ export class user_guild {
     name: string;
     users: user_account[];
     houseBones: number;
-    gamesPlayed: number;
-    slotsGamesPlayed: number;
-    diceGamesPlayed: number;
-    bjGamesPlayed: number;
-    rlGamesPlayed: number;
-    diceGamesWon: number;
-    rlGamesWon: number;
-    bjGamesWon: number;
-    slotsGamesWon: number;
+
+    horseRaceIsTakingBets: boolean;
+    horseRaceIsActive: boolean;
+    horseRaceBetPool: bet_pool;
+    horseTrackLen: number;
+    horses: race_horse[];
+
     constructor(id: string) {
         this.id = id;
         this.name = null;
         this.users = [];
         this.houseBones = 0;
-        this.gamesPlayed = 0;
-        this.slotsGamesPlayed = 0;
-        this.diceGamesPlayed = 0;
-        this.bjGamesPlayed = 0;
-        this.rlGamesPlayed = 0;
-        this.diceGamesWon = 0;
-        this.rlGamesWon = 0;
-        this.bjGamesWon = 0;
-        this.slotsGamesWon = 0;
+        this.horseRaceIsActive = false;
+        this.horseRaceIsTakingBets = false;
+        this.horseRaceBetPool = new bet_pool();
+        this.horseTrackLen = 65;
+        this.horses = [];
     }
 }

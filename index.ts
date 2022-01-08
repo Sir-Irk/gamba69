@@ -1,5 +1,4 @@
-import Discord, { TextChannel } from 'discord.js';
-// import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
+import Discord, { Emoji, TextChannel } from 'discord.js';
 import { readFileSync } from 'fs';
 const config = JSON.parse(readFileSync('config.json').toString());
 
@@ -13,6 +12,8 @@ import { cfg } from './src/bot_cfg.js';
 import { dayInMili, hourInMili, minInMili } from './src/constants.js';
 import { boneSymbol } from './src/symbols.js';
 import { EMOJIS, GIFS } from './src/media.js';
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 import {
     client,
@@ -33,12 +34,22 @@ import {
     prefix,
     display_guild_stats,
 } from './src/utils.js';
+import { array } from 'zod';
+import {
+    close_horse_race_betting,
+    list_horses,
+    process_horse_race_bet,
+    start_horse_race,
+    start_horse_race_bet_taking,
+} from './horse_racing.js';
+import { finished } from 'stream';
 
 let botInitialized = false;
 
 async function initialize() {
     await load_graphics();
     await load_users();
+    console.log('finished loading users');
     botInitialized = true;
 }
 
@@ -114,7 +125,7 @@ async function daily_bones(user: user_account, msg: Discord.Message<boolean>) {
 
 client.on('messageCreate', async (msg) => {
     if (msg.author.bot) return;
-    if (msg.guildId !== `922243045787852890`) return;
+    //if (msg.guildId !== `922243045787852890`) return;
     if (msg.content.startsWith(prefix)) return;
     if (!botInitialized) return;
 
@@ -179,7 +190,7 @@ client.on('messageCreate', async (msg) => {
 const casinoChannel = `<#923887321517031434>`;
 const noGambaPic = `https://i.imgur.com/I49CZW7.png`;
 client.on('messageCreate', async (msg) => {
-    if (msg.guildId !== `922243045787852890`) return;
+    //if (msg.guildId !== `922243045787852890`) return;
     if (msg.author.bot) return;
     if (!msg.content.startsWith(prefix)) return;
     if (!botInitialized) {
@@ -216,6 +227,16 @@ client.on('messageCreate', async (msg) => {
     }
 
     switch (command) {
+        /*
+        case 'write':
+            {
+                guild.users.forEach((u: user_account) => {
+                    console.log(`Wrote user: ${u.name}`);
+                    write_user_data_json(u);
+                });
+            }
+            break;
+            */
         case 'ping':
             {
                 const timeTaken = Date.now() - msg.createdTimestamp;
@@ -408,6 +429,39 @@ client.on('messageCreate', async (msg) => {
                     await dice_game(user, bet, msg);
                     write_user_data_json(user);
                 }
+            }
+            break;
+
+        case `stable`:
+        case `stables`:
+            await list_horses(user, msg);
+            break;
+
+        case `hr`:
+        case `race`:
+        case `horserace`:
+            await start_horse_race_bet_taking(user, msg);
+            break;
+
+        case `close`:
+            await close_horse_race_betting(user, msg);
+            break;
+
+        case 'horse':
+            {
+                if (args.length < 2) {
+                    msg.reply(`**usage**: ?hr <bet> <horse number>`);
+                    return;
+                }
+                let bet = parse_bet(user, args[1], msg);
+                let horseNum = parseInt(args[0]) - 1;
+                if (isNaN(horseNum) || horseNum < 0) {
+                    msg.reply(`Invalid horse number`);
+                    msg.reply(`**usage**: ?hr <bet> <horse number>`);
+                    return;
+                }
+
+                await process_horse_race_bet(user, horseNum, bet, msg);
             }
             break;
 

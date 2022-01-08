@@ -5,8 +5,10 @@ const { Client } = Discord;
 import { boneSymbol, slotSymbols } from './symbols.js';
 import { slotPoints } from './slots.js';
 import { GIFS, EMOJIS } from './media.js';
-import { user_account, user_guild } from './user.js';
+import { game_stats, user_account, user_guild } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
+import { number } from 'zod';
+import { average_record, race_horse } from '../horse_racing.js';
 
 export const userDataJsonPath = 'user_data.json';
 
@@ -16,6 +18,21 @@ export const client = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 export const prefix = '?';
 
 export let userGuilds = [];
+
+export enum game_category {
+    blackjack,
+    roulette,
+    dice,
+    slots,
+    horseRacing,
+    count,
+}
+
+export function add_money_to_user(user: user_account, amount: number) {
+    user.bones += amount;
+    user.highestBones = Math.max(user.bones, user.highestBones);
+    user.guildObj.houseBones -= amount;
+}
 
 export function verify_bet(user: user_account, bet: number, msg: Discord.Message<boolean>): boolean {
     let str = `${user.nickname}, `;
@@ -170,18 +187,16 @@ export async function give_user_bones(
     gifter.bones -= amount;
     write_user_data_json(gifter);
     write_user_data_json(receiver);
-    msg.reply(`${receiver.name}, ${gifter.name} just gave you *
-                                   *${amount.toLocaleString('en-US')} *
-                                   *$ { boneSymbol }`);
+    msg.reply(`${receiver.name}, ${gifter.name} just gave you **${amount.toLocaleString('en-US')}** ${boneSymbol}`);
 }
 
-export async function print_richest_list(users: user_account[], msg: Discord.Message<boolean>): Promise<void> {
+export async function print_richest_list(users: user_account[], msg: Discord.Message): Promise<void> {
     users.sort(function (usr0, usr1) {
         const a = usr0.bones;
         const b = usr1.bones;
         return a < b ? 1 : a > b ? -1 : 0;
     });
-    let leaderboard = new String();
+    let leaderboard = '';
 
     let sum = 0;
     for (let i = 0; i < users.length; ++i) {
@@ -194,29 +209,28 @@ export async function print_richest_list(users: user_account[], msg: Discord.Mes
     for (let i = 0; i < users.length && i < 10; i++) {
         const usr = users[i];
         if (i == 0) {
-            names.push(`: first_place : $ { usr.nickname }`);
+            names.push(`:first_place: ${usr.nickname}`);
         } else if (i == 1) {
-            names.push(`: second_place : $ { usr.nickname } `);
+            names.push(`:second_place: ${usr.nickname} `);
         } else if (i == 2) {
-            names.push(`: third_place : $ { usr.nickname }`);
+            names.push(`:third_place: ${usr.nickname}`);
         } else {
-            names.push(`* *${i + 1} th * *$ { usr.nickname }`);
+            names.push(`**${i + 1}th** ${usr.nickname}`);
         }
         let percentage = 0;
         if (sum > 0) {
             percentage = Math.round((usr.bones / sum) * 100);
         }
-        scores.push(`\n${boneSymbol} ${usr.bones.toLocaleString('en-US')}(
-        ${percentage.toLocaleString('en-US')} %)\n`);
+        scores.push(`\n${boneSymbol} ${usr.bones.toLocaleString('en-US')} (${percentage.toLocaleString('en-US')}%)\n`);
     }
-    const embed = new Discord.MessageEmbed().setTitle(`${boneSymbol} Top 10 Richest $ { boneSymbol }`).setColor('#00AAFF');
+    const embed = new Discord.MessageEmbed().setTitle(`${boneSymbol} Top 10 Richest ${boneSymbol}`).setColor('#00AAFF');
 
     for (let i = 0; i < names.length; ++i) {
         embed.addFields({ name: names[i], value: scores[i], inline: false });
     }
 
     embed.addFields({
-        name: `: computer : Server Total`,
+        name: `:computer: Server Total`,
         value: `${boneSymbol} ${sum.toLocaleString('en-US')}`,
         inline: false,
     });
@@ -242,21 +256,11 @@ export function write_user_data_json(user: user_account): void {
     if (!json[guild]) {
         json[guild] = {
             guild_name: user.guildName,
-            gamesPlayed: 0,
             houseBones: guildObj.houseBones,
         };
     }
 
-    json[guild].gamesPlayed = guildObj.gamesPlayed;
-    json[guild].diceGamesPlayed = guildObj.diceGamesPlayed;
-    json[guild].rlGamesPlayed = guildObj.rlGamesPlayed;
-    json[guild].bjGamesPlayed = guildObj.bjGamesPlayed;
-    json[guild].slotsGamesPlayed = guildObj.slotsGamesPlayed;
-
-    json[guild].diceGamesWon = guildObj.diceGamesWon;
-    json[guild].rlGamesWon = guildObj.rlGamesWon;
-    json[guild].bjGamesWon = guildObj.bjGamesWon;
-    json[guild].slotsGamesWon = guildObj.slotsGamesWon;
+    json[guild].horses = guildObj.horses;
 
     json[guild][id] = {
         username: user.name,
@@ -266,21 +270,8 @@ export function write_user_data_json(user: user_account): void {
         workStartTime: user.workStartTime,
         workPaycheck: user.workPaycheck,
         charityCollectionTime: user.charityCollectionTime,
-
-        diceGamesPlayed: user.diceGamesPlayed,
-        rlGamesPlayed: user.rlGamesPlayed,
-        bjGamesPlayed: user.bjGamesPlayed,
-        slotsGamesPlayed: user.slotsGamesPlayed,
-
-        diceGamesWon: user.diceGamesWon,
-        rlGamesWon: user.rlGamesWon,
-        bjGamesWon: user.bjGamesWon,
-        slotsGamesWon: user.slotsGamesWon,
-
-        diceGamesBonesWon: user.diceGamesBonesWon,
-        rlGamesBonesWon: user.rlGamesBonesWon,
-        bjGamesBonesWon: user.bjGamesBonesWon,
-        slotsGamesBonesWon: user.slotsGamesBonesWon,
+        highestBones: user.highestBones,
+        gameStats: user.gameStats,
     };
     fs.writeFileSync(userDataJsonPath, JSON.stringify(json, null, 2));
     isWritingJSONfile = false;
@@ -292,29 +283,36 @@ export async function load_users(): Promise<void> {
     let json = JSON.parse(file.toString());
 
     for (const guildKey in json) {
-        // if (guildKey !== `922243045787852890`) continue;
+        //if (guildKey !== `922243045787852890`) continue;
         let guild = new user_guild(guildKey);
 
         const g = json[guildKey];
         let guildObj = await client.guilds.fetch(guildKey);
         guild.name = g.guild_name;
-        if (g.gamesPlayed != undefined) guild.gamesPlayed = g.gamesPlayed;
-        if (g.houseBones != undefined) guild.houseBones = g.houseBones;
-        if (g.diceGamesPlayed != undefined) guild.diceGamesPlayed = g.diceGamesPlayed;
-        if (g.rlGamesPlayed != undefined) guild.rlGamesPlayed = g.rlGamesPlayed;
-        if (g.bjGamesPlayed != undefined) guild.bjGamesPlayed = g.bjGamesPlayed;
-        if (g.slotsGamesPlayed != undefined) guild.slotsGamesPlayed = g.slotsGamesPlayed;
-        if (g.diceGamesWon != undefined) guild.diceGamesWon = g.diceGamesWon;
-        if (g.rlGamesWon != undefined) guild.rlGamesWon = g.rlGamesWon;
-        if (g.bjGamesWon != undefined) guild.bjGamesWon = g.bjGamesWon;
-        if (g.slotsGamesWon != undefined) guild.slotsGamesWon = g.slotsGamesWon;
+
+        guild.houseBones = g.houseBones;
+        for (const horseKey in json[guildKey]['horses']) {
+            const u = json[guildKey]['horses'][horseKey];
+            //if (u.placementAverage !== undefined) {
+            let horse = new race_horse(u.name, 0);
+            horse.wins = u.wins;
+            horse.races = u.races;
+
+            horse.placementAverage.count = u.placementAverage.count;
+            horse.placementAverage.sum = u.placementAverage.sum;
+            horse.speedAverage.count = u.speedAverage.count;
+            horse.speedAverage.sum = u.speedAverage.sum;
+            horse.speed = u.speed;
+            guild.horses.push(horse);
+        }
+
         userGuilds.push(guild);
 
         let guildName = '';
         for (const userKey in json[guildKey]) {
             const u = json[guildKey][userKey];
             if (u.bones == null || u.bones == undefined) {
-                guildName = u.guild_name;
+                if (u.guild_name !== undefined) guildName = u.guild_name;
                 continue;
             }
 
@@ -335,159 +333,127 @@ export async function load_users(): Promise<void> {
 
             let user = new user_account(u.username, userKey, nickname, guildKey, guildName, guild, u.bones);
             user.dailyCollectionTime = u.dailyCollectionTime;
-            if (u.workStartTime != undefined) user.workStartTime = u.workStartTime;
-            if (u.workPaycheck != undefined) user.workPaycheck = u.workPaycheck;
-            if (u.dailyStreak != undefined) user.dailyStreak = u.dailyStreak;
-            if (u.charityCollectionTime != undefined) user.charityCollectionTime = u.charityCollectionTime;
 
-            if (u.diceGamesPlayed != undefined) user.diceGamesPlayed = u.diceGamesPlayed;
-            if (u.rlGamesPlayed != undefined) user.rlGamesPlayed = u.rlGamesPlayed;
-            if (u.bjGamesPlayed != undefined) user.bjGamesPlayed = u.bjGamesPlayed;
-            if (u.slotsGamesPlayed != undefined) user.slotsGamesPlayed = u.slotsGamesPlayed;
+            for (let i = 0; i < game_category.count; ++i) {
+                user.gameStats.push(new game_stats(i as game_category));
+            }
+            user.workStartTime = u.workStartTime;
+            user.workPaycheck = u.workPaycheck;
+            user.dailyStreak = u.dailyStreak;
+            user.charityCollectionTime = u.charityCollectionTime;
+            user.highestBones = u.highestBones;
 
-            if (u.diceGamesWon != undefined) user.diceGamesWon = u.diceGamesWon;
-            if (u.rlGamesWon != undefined) user.rlGamesWon = u.rlGamesWon;
-            if (u.bjGamesWon != undefined) user.bjGamesWon = u.bjGamesWon;
-            if (u.slotsGamesWon != undefined) user.slotsGamesWon = u.slotsGamesWon;
-
-            if (u.diceGamesBonesWon != undefined) user.diceGamesBonesWon = u.diceGamesBonesWon;
-            if (u.rlGamesBonesWon != undefined) user.rlGamesBonesWon = u.rlGamesBonesWon;
-            if (u.bjGamesBonesWon != undefined) user.bjGamesBonesWon = u.bjGamesBonesWon;
-            if (u.slotsGamesBonesWon != undefined) user.slotsGamesBonesWon = u.slotsGamesBonesWon;
-
+            user.gameStats = u.gameStats as game_stats[];
             guild.users.push(user);
             console.log(`Loaded user: ${u.username} for guild ${json[guildKey].guild_name}`);
         }
     }
 }
 
-export async function display_guild_stats(guild: user_guild, msg: Discord.Message<boolean>): Promise<void> {
-    const gamesPlayed = guild.bjGamesPlayed + guild.diceGamesPlayed + guild.slotsGamesPlayed + guild.rlGamesPlayed;
-    let winSum = guild.bjGamesWon + guild.diceGamesWon + guild.slotsGamesWon + guild.rlGamesWon;
+class game_stat_display {
+    played: number;
+    moneySum: number;
+    wins: number;
+    winPercent: number;
+    name: string;
 
-    let bjBoneSum = 0;
-    let rlBoneSum = 0;
-    let slotsBoneSum = 0;
-    let diceBoneSum = 0;
-    for (let i = 0; i < guild.users.length; ++i) {
-        const u = guild.users[i];
-        bjBoneSum += u.bjGamesBonesWon;
-        rlBoneSum += u.rlGamesBonesWon;
-        slotsBoneSum += u.slotsGamesBonesWon;
-        diceBoneSum += u.diceGamesBonesWon;
+    constructor(name: string) {
+        this.played = 0;
+        this.moneySum = 0;
+        this.wins = 0;
+        this.winPercent = 0;
+        this.name = name;
     }
-    let boneSum = bjBoneSum + rlBoneSum + slotsBoneSum + diceBoneSum;
+}
 
-    const winPercentage = gamesPlayed > 0 ? Math.round((winSum / gamesPlayed) * 100) : 0;
-    const bjWinPercentage = guild.bjGamesPlayed > 0 ? Math.round((guild.bjGamesWon / guild.bjGamesPlayed) * 100) : 0;
-    const rlWinPercentage = guild.rlGamesPlayed > 0 ? Math.round((guild.rlGamesWon / guild.rlGamesPlayed) * 100) : 0;
-    const diceWinPercentage = guild.diceGamesPlayed > 0 ? Math.round((guild.diceGamesWon / guild.diceGamesPlayed) * 100) : 0;
-    const slotsWinPercentage = guild.slotsGamesPlayed > 0 ? Math.round((guild.slotsGamesWon / guild.slotsGamesPlayed) * 100) : 0;
+export async function display_guild_stats(guild: user_guild, msg: Discord.Message<boolean>): Promise<void> {
+    let totalGamesPlayed = 0;
+    let winSum = 0;
+    let stats: game_stat_display[] = [];
+    stats.push(new game_stat_display(`:black_joker:  Blackjack  :black_joker:`));
+    stats.push(new game_stat_display(`:gun:  Roulette  :gun:`));
+    stats.push(new game_stat_display(`:game_die:  Dice  :game_die:`));
+    stats.push(new game_stat_display(`:slot_machine:  Slots  :slot_machine:`));
+    stats.push(new game_stat_display(`:horse_racing:  Racing  :horse_racing:`));
 
-    const boneSumStr = boneSum.toLocaleString('en-US');
-    const bjBonesStr = bjBoneSum.toLocaleString('en-US');
-    const rlBonesStr = rlBoneSum.toLocaleString('en-US');
-    const slotsBonesStr = slotsBoneSum.toLocaleString('en-US');
-    const diceBonesStr = diceBoneSum.toLocaleString('en-US');
+    guild.users.forEach((e: user_account) => {
+        e.gameStats.forEach((s: game_stats) => {
+            totalGamesPlayed += s.played;
+            winSum += s.wins;
+            stats[s.type].played += s.played;
+            stats[s.type].wins += s.wins;
+            stats[s.type].moneySum += s.moneyWon;
+        });
+    });
+
+    let totalWinPercent = totalGamesPlayed > 0 ? Math.round((winSum / totalGamesPlayed) * 100) : 0;
+
+    let totalBoneSum = 0;
+    stats.forEach((s: game_stat_display) => {
+        totalBoneSum += s.moneySum;
+    });
 
     const embed = new Discord.MessageEmbed()
-        .setTitle(`${guild.name} Stats`)
-        .setColor('#AA0090')
-        .addFields(
-            {
-                name: `* *All * *`,
-                value: `Played : ${gamesPlayed}\nWon : ${winSum}(
-                ${winPercentage} %)\nBones Won : ${boneSumStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `* *Blackjack * *`,
-                value: `Played : ${guild.bjGamesPlayed}
-                       nWon : ${guild.bjGamesWon}(${bjWinPercentage} %)\nBones
-                       Won : ${bjBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `* *Slots * *`,
-                value: `Played : ${guild.slotsGamesPlayed}\nWon : ${guild.slotsGamesWon}(${slotsWinPercentage} %)\nBones
-                       Won : ${slotsBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `* *Russian Roulette * *`,
-                value: `Played : ${guild.rlGamesPlayed}
-                       nWon : ${guild.rlGamesWon}(${rlWinPercentage} %)\nBones
-                       Won : ${rlBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `* *Dice * *`,
-                value: `Played : ${guild.diceGamesPlayed}\nWon :
-                           ${guild.diceGamesWon}(${diceWinPercentage} %)\nBones
-                       Won : ${diceBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `Extra :`,
-                value: `Stats recorded since 1 / 4 / 22`,
-                inline: false,
-            }
-        );
+        .setTitle(`${boneSymbol} ${guild.name}: Stats For All Tight Little Asses ${boneSymbol}`)
+        .setColor('#229090');
+
+    let str = `**Games:** ${totalGamesPlayed.toLocaleString('en-US')}\n`;
+    str += `**Wins:** ${winSum.toLocaleString('en-US')} (${totalWinPercent}%)\n`;
+    str += `**Profit:** ${totalBoneSum.toLocaleString('en-US')}`;
+    embed.addFields({ name: `:video_game: All Games :video_game:`, value: str, inline: true });
+
+    stats.forEach((s: game_stat_display) => {
+        s.winPercent = s.played > 0 ? Math.round((s.wins / s.played) * 100) : 0;
+        str = `**Games:** ${s.played.toLocaleString('en-US')}\n`;
+        str += `**Wins:** ${s.wins.toLocaleString('en-US')} (${s.winPercent}%)\n`;
+        str += `**Profit:** ${s.moneySum.toLocaleString('en-US')}`;
+        embed.addFields({ name: s.name, value: str, inline: true });
+    });
+
+    embed.addFields({ name: `Extra:`, value: `Stats recorded since 1/4/22`, inline: false });
+
     await msg.reply({ embeds: [embed] });
 }
 
-export async function display_user_stats(user, msg) {
-    const gamesPlayed = user.bjGamesPlayed + user.diceGamesPlayed + user.slotsGamesPlayed + user.rlGamesPlayed;
-    let winSum = user.bjGamesWon + user.diceGamesWon + user.slotsGamesWon + user.rlGamesWon;
-    let boneSum = user.bjGamesBonesWon + user.diceGamesBonesWon + user.slotsGamesBonesWon + user.rlGamesBonesWon;
+export async function display_user_stats(user: user_account, msg: Discord.Message) {
+    let totalGamesPlayed = 0;
+    let winSum = 0;
+    let totalBoneSum = 0;
 
-    const winPercentage = gamesPlayed > 0 ? Math.round((winSum / gamesPlayed) * 100) : 0;
-    const bjWinPercentage = user.bjGamesPlayed > 0 ? Math.round((user.bjGamesWon / user.bjGamesPlayed) * 100) : 0;
-    const rlWinPercentage = user.rlGamesPlayed > 0 ? Math.round((user.rlGamesWon / user.rlGamesPlayed) * 100) : 0;
-    const diceWinPercentage = user.diceGamesPlayed > 0 ? Math.round((user.diceGamesWon / user.diceGamesPlayed) * 100) : 0;
-    const slotsWinPercentage = user.slotsGamesPlayed > 0 ? Math.round((user.slotsGamesWon / user.slotsGamesPlayed) * 100) : 0;
+    let stats: game_stat_display[] = [];
+    stats.push(new game_stat_display(`:black_joker:  Blackjack  :black_joker:`));
+    stats.push(new game_stat_display(`:gun:  Roulette  :gun:`));
+    stats.push(new game_stat_display(`:game_die:  Dice  :game_die:`));
+    stats.push(new game_stat_display(`:slot_machine:  Slots  :slot_machine:`));
+    stats.push(new game_stat_display(`:horse_racing:  Racing  :horse_racing:`));
 
-    const boneSumStr = boneSum.toLocaleString('en-US');
-    const bjBonesStr = user.bjGamesBonesWon.toLocaleString('en-US');
-    const slotsBonesStr = user.slotsGamesBonesWon.toLocaleString('en-US');
-    const rlBonesStr = user.rlGamesBonesWon.toLocaleString('en-US');
-    const diceBonesStr = user.diceGamesBonesWon.toLocaleString('en-US');
+    user.gameStats.forEach((s: game_stats) => {
+        totalGamesPlayed += s.played;
+        winSum += s.wins;
+        totalBoneSum += s.moneyWon;
+        stats[s.type].played += s.played;
+        stats[s.type].wins += s.wins;
+        stats[s.type].moneySum += s.moneyWon;
+        stats[s.type].winPercent = s.played > 0 ? Math.round((s.wins / s.played) * 100) : 0;
+    });
 
-    const embed = new Discord.MessageEmbed()
-        .setTitle(`${user.nickname}'s Stats`)
-        .setColor('#AA0090')
-        .addFields(
-            {
-                name: `**All**`,
-                value: `Played: ${gamesPlayed}\nWon: ${winSum} (${winPercentage}%)\nBones Won: ${boneSumStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `**Blackjack**`,
-                value: `Played: ${user.bjGamesPlayed}\nWon: ${user.bjGamesWon} (${bjWinPercentage}%)\nBones Won: ${bjBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `**Slots**`,
-                value: `Played: ${user.slotsGamesPlayed}\nWon: ${user.slotsGamesWon} (${slotsWinPercentage}%)\nBones Won: ${slotsBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `**Russian Roulette**`,
-                value: `Played: ${user.rlGamesPlayed}\nWon: ${user.rlGamesWon} (${rlWinPercentage}%)\nBones Won: ${rlBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `**Dice**`,
-                value: `Played: ${user.diceGamesPlayed}\nWon: ${user.diceGamesWon} (${diceWinPercentage}%)\nBones Won: ${diceBonesStr} ${boneSymbol}`,
-                inline: false,
-            },
-            {
-                name: `Extra:`,
-                value: `Stats recorded since 1/4/22`,
-                inline: false,
-            }
-        );
+    let totalWinPercent = totalGamesPlayed > 0 ? Math.round((winSum / totalGamesPlayed) * 100) : 0;
+    const embed = new Discord.MessageEmbed().setTitle(`${boneSymbol} ${user.nickname}'s Stats ${boneSymbol}`).setColor('#9033AA');
+
+    let str = `**Games:** ${totalGamesPlayed.toLocaleString('en-US')}\n`;
+    str += `**Wins:** ${winSum.toLocaleString('en-US')} (${totalWinPercent}%)\n`;
+    str += `**Profit:** ${totalBoneSum.toLocaleString('en-US')}`;
+    embed.addFields({ name: `:video_game: All Games :video_game:`, value: str, inline: true });
+
+    stats.forEach((s: game_stat_display) => {
+        str = `**Games:** ${s.played.toLocaleString('en-US')}\n`;
+        str += `**Wins:** ${s.wins.toLocaleString('en-US')} (${s.winPercent}%)\n`;
+        str += `**Profit:** ${s.moneySum.toLocaleString('en-US')}`;
+        embed.addFields({ name: s.name, value: str, inline: true });
+    });
+
+    embed.addFields({ name: `Extra:`, value: `Stats recorded since 1/4/22`, inline: false });
+
     await msg.reply({ embeds: [embed] });
 }
 
@@ -565,12 +531,12 @@ export async function display_help(msg: Discord.Message<boolean>): Promise<void>
                 inline: false,
             },
             {
-                name: `${prefix} give<user><amount>`,
+                name: `${prefix} give<user> <amount>`,
                 value: 'Give your bones to another user',
                 inline: false,
             },
             {
-                name: `${prefix} rain<amount><number of users>(optional)`,
+                name: `${prefix} rain<amount> <number of users>(optional)`,
                 value: 'Make it rain on random people in the server. "Amount" is divided amongst everyone unless you specify a number of users',
                 inline: false,
             },
@@ -599,7 +565,7 @@ export async function display_help(msg: Discord.Message<boolean>): Promise<void>
     await msg.reply({ embeds: [embed] });
 }
 
-export function parse_bet(user, arg, msg) {
+export function parse_bet(user: user_account, arg: any, msg: Discord.Message): number {
     let bet = get_percentage_int(user.bones, arg);
     if (bet == 0) bet = get_thousands_int(arg);
 

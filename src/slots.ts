@@ -1,6 +1,6 @@
 import { cfg } from './bot_cfg.js';
 import { boneSymbol, slotSymbols, slotBlanks } from './symbols.js';
-import { verify_bet, user_is_playing_game, delay } from './utils.js';
+import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
 import { GIFS } from './media.js';
 import Discord from 'discord.js';
 import { user_account } from './user.js';
@@ -187,41 +187,36 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
         betBonus = Math.round(bet * 0.2 * (slotPoints[combos[0][0]] * 0.2 * combos[0][1]));
     }
 
+    let prize = 0;
+    let won = true;
     if (points > 0) {
-        const prize = Math.round(points * bet);
-        user.bones += prize;
-        user.slotsGamesBonesWon += prize;
-        user.guildObj.houseBones -= prize;
+        prize = Math.round(points * bet);
         await msg.reply(
             `${slotsEmoji} ${user.nickname}, EZ! You won **${prize.toLocaleString('en-US')}** ${boneSymbol}\n${slotSet[messageIdx]} ${
                 messages[messageIdx]
             }`
         );
         msg.channel.send(`${GIFS.winSlotsGif}`);
-        user.slotsGamesWon++;
-        user.guildObj.slotsGamesWon++;
     } else {
         const lossStr = (bet - betBonus).toLocaleString('en-US');
         const bonusStr = betBonus.toLocaleString('en-US');
         if (combos.length > 0) {
-            user.bones -= bet - betBonus;
-            user.slotsGamesBonesWon -= bet - betBonus;
-            user.guildObj.houseBones += bet - betBonus;
+            prize = -(bet - betBonus);
+            won = false;
+            const slotStr = `${slotSymbols[slotSetRoll][combos[0][0]]}`;
+            const betStr = bet.toLocaleString('en-US');
             await msg.reply(
-                `${slotsEmoji} ${user.nickname}, You Lost **${bet.toLocaleString(
-                    'en-US'
-                )}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${slotSymbols[slotSetRoll][combos[0][0]]} **combo**`
+                `${slotsEmoji} ${user.nickname}, You Lost **${betStr}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${slotStr} **combo**`
             );
         } else {
-            user.bones -= bet;
-            user.slotsGamesBonesWon -= bet;
-            user.guildObj.houseBones += bet;
+            prize = -bet;
+            won = false;
             await msg.reply(`${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`);
         }
         msg.channel.send(`${GIFS.loseSlotsGif}`);
     }
 
-    user.slotsGamesPlayed++;
-    user.guildObj.slotsGamesPlayed++;
+    user.add_money(prize);
+    user.update_stats(won, prize, game_category.slots);
     user.isPlayingGame = false;
 }

@@ -1,6 +1,6 @@
 import { boneSymbol } from './symbols.js';
 import { cfg } from './bot_cfg.js';
-import { verify_bet, user_is_playing_game, delay, shuffle } from './utils.js';
+import { verify_bet, user_is_playing_game, delay, shuffle, add_money_to_user, parse_bet, game_category } from './utils.js';
 //import { get_thousands_int, get_percentage_int, shuffle } from './utils.mjs';
 import { GIFS, EMOJIS } from './media.js';
 import { user_account } from './user.js';
@@ -236,9 +236,9 @@ async function blackjack_game(user: user_account, bet: number, msg: Discord.Mess
         await msgRef.edit(msgRef.content + '\n' + str);
         await delay(cfg.bjMessageDelay);
         if (houseSum < 21) {
-            user.bones += bet * 2;
-            user.bjGamesBonesWon += bet * 2;
-            user.guildObj.houseBones -= bet * 2;
+            const prize = bet * 2;
+            user.add_money(prize);
+            user.update_stats(true, prize, game_category.blackjack);
             user.isPlayingGame = false;
             user.bj.isDealingHand = false;
             const prizeStr = (bet * 2).toLocaleString('en-US');
@@ -246,11 +246,6 @@ async function blackjack_game(user: user_account, bet: number, msg: Discord.Mess
                 `:black_joker: ${user.nickname} Fuck me, you won with a **natural blackjack**. Take your **${prizeStr}** ${boneSymbol}`
             );
             await msg.channel.send(`${GIFS.toCashFlowGif}`);
-            user.bjGamesPlayed++;
-            user.guildObj.bjGamesPlayed++;
-            user.guildObj.gamesPlayed++;
-            user.guildObj.bjGamesWon++;
-            user.bjGamesWon++;
         } else if (houseSum == 21) {
             await msg.reply(
                 `:black_joker: ${user.nickname} Sucks to be you, I just clutched it out and denied your blackjack. You keep your bet`
@@ -276,12 +271,9 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
 
     if (option === blackjack_option.resign) {
         const halfBet = Math.floor(user.bj.bet * 0.5);
-        user.bones -= halfBet;
-        user.guildObj.houseBones += halfBet;
-        user.isPlayingGame = false;
-        user.bj.isDealingHand = false;
-        user.bjGamesPlayed++;
-        user.guildObj.bjGamesPlayed++;
+        const prize = halfBet;
+        user.add_money(prize);
+        user.update_stats(false, prize, game_category.blackjack);
         msg.reply(`${user.nickname}, You chose to surrender and lose half your bet: **${halfBet}** ${boneSymbol}`);
         return;
     }
@@ -308,18 +300,15 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
             await msgRef.edit(msgRef.content + `\n` + str);
             await delay(cfg.bjMessageDelay);
 
-            user.bones -= user.bj.bet;
-            user.bjGamesBonesWon -= user.bj.bet;
-            user.guildObj.houseBones += user.bj.bet;
+            const prize = -user.bj.bet;
+            user.add_money(prize);
+            user.update_stats(false, prize, game_category.blackjack);
             str = `:black_joker: ${user.nickname}, **OWH!** You **busted!** You lose **${user.bj.bet.toLocaleString(
                 'en-US'
             )}** ${boneSymbol}`;
             await msg.reply(str);
             msg.channel.send(`${GIFS.youBustedGif}`);
             blackjack_game_end(user);
-            user.bjGamesPlayed++;
-            user.guildObj.bjGamesPlayed++;
-            user.guildObj.gamesPlayed++;
             return;
         } else {
             let str = `${user.nickname}, You have ` + make_blackjack_hand_string(userCards, userCards.length, userSum);
@@ -400,60 +389,48 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
             }
         }
 
+        let prize = 0;
+        let won = true;
         if (userSum > 21) {
+            prize = -user.bj.bet;
             str = `:black_joker: ${user.nickname}, **OWH!** You **busted!** You lose **${user.bj.bet.toLocaleString(
                 'en-US'
             )}** ${boneSymbol}`;
             await msg.reply(str);
             msg.channel.send(`${GIFS.youBustedGif}`);
             blackjack_game_end(user);
-            user.bjGamesPlayed++;
-            user.guildObj.bjGamesPlayed++;
-            user.guildObj.gamesPlayed++;
-            return;
+            won = false;
         } else if (userSum == 21 && houseSum != 21) {
-            user.bones += user.bj.bet * 2;
-            user.bjGamesBonesWon += user.bj.bet * 2;
-            user.guildObj.houseBones -= user.bj.bet * 2;
-            const prizeStr = (user.bj.bet * 2).toLocaleString('en-US');
+            prize = user.bj.bet * 2;
+            won = true;
+            const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`:black_joker: ${user.nickname}, **FUCK**, You won with **blackjack** and win **${prizeStr}** ${boneSymbol}`);
             msg.channel.send(`${GIFS.toCashFlowGif}`);
-
-            user.guildObj.bjGamesWon++;
-            user.bjGamesWon++;
         } else if (houseSum > 21) {
-            user.bones += user.bj.bet;
-            user.bjGamesBonesWon += user.bj.bet;
-            user.guildObj.houseBones -= user.bj.bet;
+            prize = user.bj.bet;
+            won = true;
+
             await msg.reply(
                 `:black_joker: ${user.nickname}, **FUCK**, I busted... You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`
             );
             msg.channel.send(`${GIFS.bustinMakesMeFeelGoodGif}`);
-
-            user.guildObj.bjGamesWon++;
-            user.bjGamesWon++;
         } else if (userSum > houseSum) {
-            user.bones += user.bj.bet;
-            user.bjGamesBonesWon += user.bj.bet;
-            user.guildObj.houseBones -= user.bj.bet;
+            prize = user.bj.bet;
+            won = true;
             await msg.reply(`${user.nickname}, Your hand beats mine. You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`);
             msg.channel.send(`${GIFS.toCashFlowGif}`);
-            user.guildObj.bjGamesWon++;
-            user.bjGamesWon++;
         } else if (userSum == houseSum) {
             await msg.reply(`${user.nickname}, It's a draw. You get your bet back ${EMOJIS.cringeEmoji}`);
         } else {
-            user.bones -= user.bj.bet;
-            user.bjGamesBonesWon -= user.bj.bet;
-            user.guildObj.houseBones += user.bj.bet;
+            prize = -user.bj.bet;
+            won = false;
             await msg.reply(`${user.nickname}, My hand beats yours. You lose **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`);
             msg.channel.send(`${GIFS.youBustedGif}`);
         }
         blackjack_game_end(user);
+        user.add_money(prize);
+        user.update_stats(true, prize, game_category.blackjack);
     }
-    user.bjGamesPlayed++;
-    user.guildObj.bjGamesPlayed++;
-    user.guildObj.gamesPlayed++;
     user.bj.isDealingHand = false;
 }
 
