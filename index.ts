@@ -227,8 +227,18 @@ client.on('messageCreate', async (msg) => {
     }
 
     const body = msg.content.slice(prefix.length);
-    const args = body.split(' ');
+    //const args = body.split(' ');
+    const args = body.split(/[\s,]+/);
     const command = args.shift().toLowerCase();
+
+    //console.log(`Args: ${args}`);
+    /*
+    for (let i = 0; i < args.length; ++i) {
+        args[i] = args[i].trim();
+    }
+    */
+
+    //console.log(`Args: ${args}`);
 
     let guild = get_guild(userGuilds, msg.guild.id);
     if (!guild) {

@@ -75,7 +75,6 @@ export class user_account {
         this.workPaycheck = 0;
         this.workStartTime = 0;
         this.numHorsesOwned = 0;
-        this.gameStats = [];
     }
 
     public add_money(amount: number) {

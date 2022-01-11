@@ -333,9 +333,6 @@ export async function load_users(): Promise<void> {
             let user = new user_account(u.username, userKey, nickname, guildKey, guildName, guild, u.bones);
             user.dailyCollectionTime = u.dailyCollectionTime;
 
-            for (let i = 0; i < game_category.count; ++i) {
-                user.gameStats.push(new game_stats(i as game_category));
-            }
             user.workStartTime = u.workStartTime;
             user.workPaycheck = u.workPaycheck;
             user.dailyStreak = u.dailyStreak;
@@ -343,7 +340,14 @@ export async function load_users(): Promise<void> {
             user.highestBones = u.highestBones;
             if (u.numHorsesOwned != undefined) user.numHorsesOwned = u.numHorsesOwned;
 
-            user.gameStats = u.gameStats as game_stats[];
+            if (u.gameStats) {
+                user.gameStats = u.gameStats as game_stats[];
+            } else {
+                user.gameStats = [];
+                for (let i = 0; i < game_category.count; ++i) {
+                    user.gameStats.push(new game_stats(i as game_category));
+                }
+            }
             guild.users.push(user);
             console.log(`Loaded user: ${u.username} for guild ${json[guildKey].guild_name}`);
         }
