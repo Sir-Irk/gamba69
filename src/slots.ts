@@ -3,7 +3,7 @@ import { boneSymbol, slotSymbols, slotBlanks } from './symbols.js';
 import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
 import { GIFS } from './media.js';
 import Discord from 'discord.js';
-import { user_account } from './user.js';
+import { user_account, user_state } from './user.js';
 
 const slotMessages = [
     [
@@ -47,7 +47,7 @@ function random_slot(weights: number[]): number {
 
 export async function slots_game(user: user_account, bet: number, msg: Discord.Message): Promise<void> {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
-    user.isPlayingGame = true;
+    user.state = user_state.none;
     const betStr = bet.toLocaleString('en-US');
     if (bet == user.bones) {
         await msg.channel.send(
@@ -218,5 +218,5 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
 
     user.add_money(prize);
     user.update_stats(won, prize, game_category.slots);
-    user.isPlayingGame = false;
+    user.state = user_state.none;
 }

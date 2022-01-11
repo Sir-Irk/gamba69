@@ -2,7 +2,7 @@ import Discord, { Emoji, TextChannel } from 'discord.js';
 import { readFileSync } from 'fs';
 const config = JSON.parse(readFileSync('config.json').toString());
 
-import { user_account, user_guild } from './src/user.js';
+import { user_account, user_guild, user_state } from './src/user.js';
 import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack.js';
 import { roulette_game, roulette_game_continue } from './src/russian_roulette.js';
 import { dice_game } from './src/dice.js';
@@ -156,7 +156,7 @@ client.on('messageCreate', async (msg) => {
     }
     write_user_data_json(user);
 
-    if (user.isBuyingHorse) {
+    if (user.state === user_state.buyingHorse) {
         await purchase_horse(user, msg.content, msg);
         return;
     }
@@ -171,8 +171,8 @@ client.on('messageCreate', async (msg) => {
         case 'end':
         case 'e':
             {
-                if (user.isPlayingGame && user.rl.counter > 0) {
-                    user.isPlayingGame = false;
+                if (user_is_playing_game(user, msg) && user.rl.counter > 0) {
+                    user.state = user_state.none;
                     user.rl.counter = 0;
                     await msg.channel.send(`${user.nickname}, You have ended the game of roulette`);
                 }
@@ -472,6 +472,10 @@ client.on('messageCreate', async (msg) => {
             break;
         case `sell`:
             {
+                if (user.id !== '150097140448886784') {
+                    msg.reply(`Sorry that command is down for bug fixing. Try again later`);
+                    return;
+                }
                 if (args.length < 1) {
                     msg.reply(`**usage**: ?sell <horse name>`);
                     return;

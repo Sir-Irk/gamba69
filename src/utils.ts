@@ -5,7 +5,7 @@ const { Client } = Discord;
 import { boneSymbol, slotSymbols } from './symbols.js';
 import { slotPoints } from './slots.js';
 import { GIFS, EMOJIS } from './media.js';
-import { game_stats, user_account, user_guild } from './user.js';
+import { game_stats, user_account, user_guild, user_state } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
 import { number } from 'zod';
 import { average_record, race_horse } from './horse_racing.js';
@@ -51,7 +51,7 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
 }
 
 export function user_is_playing_game(user: user_account, msg: Discord.Message<boolean>): boolean {
-    if (user.isPlayingGame || user.isWaitingOnHorseRace) {
+    if (user.state !== user_state.none) {
         msg.reply(`${user.nickname}, You are already playing a game`);
         return true;
     }

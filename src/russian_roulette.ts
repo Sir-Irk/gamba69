@@ -2,7 +2,7 @@ import { boneSymbol } from './symbols.js';
 import { cfg } from './bot_cfg.js';
 import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
 import { EMOJIS, GIFS } from './media.js';
-import { user_account } from './user.js';
+import { user_account, user_state } from './user.js';
 import Discord from 'discord.js';
 
 export class roulette_game_data {
@@ -29,7 +29,7 @@ export async function roulette_game(user: user_account, bet: number, msg: Discor
         return;
     }
 
-    user.isPlayingGame = true;
+    user.state = user_state.playingGame;
 
     if (user.rl.counter == 0) {
         user.rl.roll = Math.floor(Math.random() * 7);
@@ -58,7 +58,7 @@ export async function roulette_game(user: user_account, bet: number, msg: Discor
         user.add_money(prize);
         user.update_stats(false, prize, game_category.roulette);
         user.rl.counter = 0;
-        user.isPlayingGame = false;
+        user.state = user_state.none;
     } else {
         user.rl.counter = 1;
         user.rl.baseBet = bet;
@@ -89,7 +89,7 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
         user.rl.bet = 0;
         user.rl.baseBet = 0;
         user.rl.counter = 0;
-        user.isPlayingGame = false;
+        user.state = user_state.none;
         msg.reply('You waited too long to continue the roulette lol');
         return;
     }
@@ -111,7 +111,7 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
         prize = -(user.rl.baseBet + user.rl.bet);
         won = false;
         user.rl.counter = 0;
-        user.isPlayingGame = false;
+        user.state = user_state.none;
         const lossStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
         await msg.channel.send(`${EMOJIS.interestedSharkEmoji} :skull_crossbones: You died! You lose **${lossStr}** ${boneSymbol}`);
         await msg.channel.send(`${GIFS.youDiedGif}`);
@@ -122,7 +122,7 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
         const prizeStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
         await msg.channel.send(`${EMOJIS.imBigEmoji} ${user.nickname}, You won all rounds! You won **${prizeStr}** ${boneSymbol}`);
         await msg.channel.send(`${GIFS.rouletteWinGif}`);
-        user.isPlayingGame = false;
+        user.state = user_state.none;
     } else {
         prize = user.rl.bet;
         user.rl.bet += user.rl.bet;

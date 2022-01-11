@@ -17,6 +17,16 @@ export class game_stats {
     }
 }
 
+export enum user_state {
+    none,
+    playingGame,
+    horseRacing,
+    horseRaceBetting,
+    buyingHorse,
+    sellingHorse,
+    namingHorse,
+}
+
 export class user_account {
     id: string;
     guild: string;
@@ -25,8 +35,9 @@ export class user_account {
     name: string;
     nickname: string;
     bones: number;
-    isPlayingGame: boolean;
-    isWaitingOnHorseRace: boolean;
+
+    state: user_state;
+
     dailyCollectionTime: number;
     dailyStreak: number;
     charityCollectionTime: number;
@@ -35,8 +46,6 @@ export class user_account {
     workPaycheck: number;
     workStartTime: number;
     highestBones: number;
-    isBuyingHorse = false;
-    isNamingHorse = false;
     numHorsesOwned: number = 0;
 
     gameStats: game_stats[];
@@ -49,6 +58,7 @@ export class user_account {
         guildObj: user_guild,
         numBones: number
     ) {
+        this.state = user_state.none;
         this.id = userId;
         this.guild = guildId;
         this.guildName = guildName;
@@ -57,7 +67,6 @@ export class user_account {
         this.nickname = nickname;
         this.bones = numBones;
         this.highestBones = 0;
-        this.isPlayingGame = false;
         this.dailyCollectionTime = 0;
         this.dailyStreak = 0;
         this.charityCollectionTime = 0;
@@ -66,7 +75,6 @@ export class user_account {
         this.workPaycheck = 0;
         this.workStartTime = 0;
         this.numHorsesOwned = 0;
-        this.isBuyingHorse = false;
         this.gameStats = [];
     }
 

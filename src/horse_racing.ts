@@ -1,14 +1,10 @@
-import { user_account, user_guild } from './user.js';
+import { user_account, user_guild, user_state } from './user.js';
 import { delay, game_category, shuffle, user_is_playing_game, verify_bet } from './utils.js';
 import { EMOJIS, GIFS } from './media.js';
 import { boneSymbol } from './symbols.js';
 import Discord, { Emoji, Guild, MessageReaction, MessageSelectMenu } from 'discord.js';
 import { cfg } from './bot_cfg.js';
 import { write_user_data_json } from './utils.js';
-import { waitForDebugger } from 'inspector';
-import { AccessorDeclaration } from 'typescript';
-import { write } from 'fs';
-import { SlashCommandUserOption } from '@discordjs/builders';
 
 class bet_pool_entry {
     user: user_account;
@@ -146,6 +142,7 @@ function make_track_string(
 export async function sell_horse(user: user_account, horse: race_horse, msg: Discord.Message) {
     while (user.guildObj.horseBeingSold) {}
     user.guildObj.horseBeingSold = true;
+
     const sellPrice = Math.round(cfg.horseBasePrice * 0.5);
     user.add_money(sellPrice);
     user.guildObj.horseGraveyard.push(horse);
@@ -160,26 +157,37 @@ export async function sell_horse(user: user_account, horse: race_horse, msg: Dis
 
     let guild = user.guildObj;
 
-    user.guildObj.horses.splice(horse.handle, 1);
+    user.guildObj.horses = user.guildObj.horses.filter((h) => h.name !== horse.name);
+
     guild.horseOwners = [];
-    for (let i = 0; i < user.guildObj.horses.length; ++i) {
-        user.guildObj.horses[i].handle = i;
+    let horses = user.guildObj.horses;
+    for (let i = 0; i < horses.length; ++i) {
+        horses[i].handle = i;
+
+        if (!horses[i].ownerId) {
+            guild.horseOwners.push(null);
+            continue;
+        }
 
         for (let j = 0; j < guild.users.length; ++j) {
             const u = guild.users[j];
-            if (u.id === guild.horses[i].ownerId) {
+            if (u.id === horses[i].ownerId) {
                 guild.horseOwners.push(u);
                 break;
             }
         }
     }
+    console.assert(
+        horses.length === guild.horseOwners.length,
+        `HORSE COUNT(${horses.length}) DOESN'T MATCH OWNER COUNT: Occured when selling ${horse.name}`
+    );
 
     write_user_data_json(user);
     user.guildObj.horseBeingSold = false;
 }
 
 export async function start_horse_purchase(user: user_account, msg: Discord.Message) {
-    if (user.isBuyingHorse) return;
+    if (user.state === user_state.buyingHorse) return;
     if (user.bones < cfg.horseBasePrice) {
         msg.reply(`${user.nickname}, you do not have enough bones to purchase a horse`);
         return;
@@ -189,7 +197,7 @@ export async function start_horse_purchase(user: user_account, msg: Discord.Mess
         msg.reply(`Sorry but you already own the maximum number of horses: ${cfg.maxHorsesPerUser}`);
         return;
     }
-    user.isBuyingHorse = true;
+    user.state = user_state.buyingHorse;
     msg.reply(`You are about to buy a horse! Please enter a name for it now :horse:`);
 }
 
@@ -206,7 +214,7 @@ export async function purchase_horse(user: user_account, horseName: string, msg:
     }
     horses.push(horse);
     msg.reply(`Congrats! You bought your new horse ${horseName}! It walks out of the stable and approaches you...`);
-    user.isBuyingHorse = false;
+    user.state = user_state.none;
     user.add_money(-cfg.horseBasePrice);
     user.numHorsesOwned++;
     await delay(3000);
@@ -419,7 +427,7 @@ async function* horse_race_bet_timeout(guild: user_guild, duration: number, msg:
             guild.horseRaceBetPool.entries = [];
             guild.horsesInRace = [];
             guild.horseRaceBetPool.entries.forEach((e) => {
-                e.user.isWaitingOnHorseRace = false;
+                e.user.state = user_state.none;
             });
             msg.reply(`Horse betting has been cancelled: Waited too long to start the race`);
             yield;
@@ -429,7 +437,7 @@ async function* horse_race_bet_timeout(guild: user_guild, duration: number, msg:
 }
 
 export async function process_horse_race_bet(user: user_account, horseNum: number, bet: number, msg: Discord.Message): Promise<void> {
-    if (user.guildObj.horseRaceIsActive || user.isPlayingGame) return;
+    if (user.guildObj.horseRaceIsActive || (user.state !== user_state.none && user.state !== user_state.horseRacing)) return;
     if (!user.guildObj.horseRaceIsTakingBets) {
         msg.reply(`There is no horse race betting going on right now. You can use ?open to start betting.`);
         return;
@@ -471,7 +479,7 @@ export async function process_horse_race_bet(user: user_account, horseNum: numbe
         return;
     }
 
-    user.isWaitingOnHorseRace = true;
+    user.state = user_state.horseRacing;
     let horse = horses[horseNum];
     pool.entries.push(new bet_pool_entry(user, horse, bet));
     msg.reply(`${user.nickname}, you have placed a bet of ${bet.toLocaleString('en-US')} ${boneSymbol} on ${horse.name}`);
@@ -507,7 +515,7 @@ export async function display_placed_bets(pool: bet_pool, msg: Discord.Message) 
 }
 
 export async function start_horse_race_bet_taking(user: user_account, msg: Discord.Message) {
-    if (user.guildObj.horseRaceIsActive || user.isPlayingGame) return;
+    if (user.guildObj.horseRaceIsActive || user_is_playing_game(user, msg)) return;
     if (user.guildObj.horseRaceIsTakingBets) {
         await msg.reply(`Bets are already being taken. Use **?bet** <horse number> <bet> to place your bet`);
         return;
@@ -614,7 +622,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
 
     let totalPrizePool = 0;
     pool.entries.forEach((e: bet_pool_entry) => {
-        e.user.isWaitingOnHorseRace = false;
+        e.user.state = user_state.none;
         totalPrizePool += e.bet;
     });
     totalPrizePool *= 2;

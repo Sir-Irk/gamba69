@@ -1,12 +1,12 @@
 import { diceEmoji, boneSymbol } from './symbols.js';
 import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
 import { EMOJIS, GIFS } from './media.js';
-import { user_account } from './user.js';
+import { user_account, user_state } from './user.js';
 import Discord from 'discord.js';
 
 export async function dice_game(user: user_account, bet: number, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
-    user.isPlayingGame = true;
+    user.state = user_state.playingGame;
 
     const betStr = bet.toLocaleString('en-US');
 
@@ -62,5 +62,5 @@ export async function dice_game(user: user_account, bet: number, msg: Discord.Me
 
     user.add_money(prize);
     user.update_stats(won, prize, game_category.dice);
-    user.isPlayingGame = false;
+    user.state = user_state.none;
 }

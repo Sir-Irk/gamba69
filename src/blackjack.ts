@@ -3,7 +3,7 @@ import { cfg } from './bot_cfg.js';
 import { verify_bet, user_is_playing_game, delay, shuffle, add_money_to_user, parse_bet, game_category } from './utils.js';
 //import { get_thousands_int, get_percentage_int, shuffle } from './utils.mjs';
 import { GIFS, EMOJIS } from './media.js';
-import { user_account } from './user.js';
+import { user_account, user_state } from './user.js';
 import Discord from 'discord.js';
 
 const BJ_DECK_COUNT = 2;
@@ -174,7 +174,7 @@ const blackjack_option = {
 async function blackjack_game(user: user_account, bet: number, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
 
-    user.isPlayingGame = true;
+    user.state = user_state.playingGame;
     user.bj.round = 1;
     user.bj.isDealingHand = true;
 
@@ -239,7 +239,7 @@ async function blackjack_game(user: user_account, bet: number, msg: Discord.Mess
             const prize = bet * 2;
             user.add_money(prize);
             user.update_stats(true, prize, game_category.blackjack);
-            user.isPlayingGame = false;
+            user.state = user_state.none;
             user.bj.isDealingHand = false;
             const prizeStr = (bet * 2).toLocaleString('en-US');
             await msg.reply(
@@ -251,7 +251,7 @@ async function blackjack_game(user: user_account, bet: number, msg: Discord.Mess
                 `:black_joker: ${user.nickname} Sucks to be you, I just clutched it out and denied your blackjack. You keep your bet`
             );
             await msg.channel.send(`${GIFS.lossStreakGif}`);
-            user.isPlayingGame = false;
+            user.state = user_state.none;
             user.bj.isDealingHand = false;
         }
     } else {
