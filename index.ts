@@ -13,6 +13,8 @@ import { dayInMili, hourInMili, minInMili } from './src/constants.js';
 import { boneSymbol } from './src/symbols.js';
 import { EMOJIS, GIFS } from './src/media.js';
 
+const Axios = require('axios').default;
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 import {
@@ -33,16 +35,25 @@ import {
     parse_bet,
     prefix,
     display_guild_stats,
+    shuffle,
 } from './src/utils.js';
 
 import {
     close_horse_race_betting,
+    display_horse_stats,
+    display_top_horses,
+    display_placed_bets,
+    horse_rank_option,
     list_horses,
     process_horse_race_bet,
     purchase_horse,
+    race_horse,
     start_horse_purchase,
     start_horse_race,
     start_horse_race_bet_taking,
+    find_horse,
+    sell_horse,
+    list_horse_graveyard,
 } from './src/horse_racing.js';
 import { finished } from 'stream';
 
@@ -76,7 +87,7 @@ async function start_working(user: user_account, msg: Discord.Message<boolean>) 
             )}** ${boneSymbol} and start working again`
         );
     } else if (user.workPaycheck > 0 && timeSpent >= cfg.workDuration) {
-        user.bones += user.workPaycheck;
+        user.add_money(user.workPaycheck);
         user.guildObj.houseBones -= user.workPaycheck;
         const range = cfg.workSalaryMax - cfg.workSalaryMin;
         const paycheck = Math.floor(cfg.workSalaryMin + (Math.random() + 1) * range);
@@ -104,7 +115,7 @@ async function daily_bones(user: user_account, msg: Discord.Message<boolean>) {
     const timeSinceLastDaily = Date.now() - user.dailyCollectionTime;
     if (user.dailyCollectionTime == 0 || timeSinceLastDaily >= cfg.dailyCollectionInterval) {
         const mul = Math.min(7, user.dailyStreak + 1);
-        user.bones += cfg.dailyBonus * mul;
+        user.add_money(cfg.dailyBonus * mul);
         user.guildObj.houseBones -= cfg.dailyBonus * mul;
         const dailyBonesStr = (cfg.dailyBonus * mul).toLocaleString('en-US');
         if (user.dailyStreak > 0) {
@@ -226,7 +237,7 @@ client.on('messageCreate', async (msg) => {
         console.log(`Adding guild: ${guild.id}`);
     }
 
-    let user = get_user(guild.users, msg.author.id);
+    let user: user_account = get_user(guild.users, msg.author.id);
     if (!user) {
         const nickname = await get_nickname(msg.author.username, msg);
         user = new user_account(msg.author.username, msg.author.id, nickname, msg.guild.id, msg.guild.name, guild, 0);
@@ -234,16 +245,17 @@ client.on('messageCreate', async (msg) => {
     }
 
     switch (command) {
-        /*
         case 'write':
             {
+                if (user.id !== '150097140448886784') {
+                    return;
+                }
                 guild.users.forEach((u: user_account) => {
                     console.log(`Wrote user: ${u.name}`);
                     write_user_data_json(u);
                 });
             }
             break;
-            */
         case 'ping':
             {
                 const timeTaken = Date.now() - msg.createdTimestamp;
@@ -446,20 +458,137 @@ client.on('messageCreate', async (msg) => {
             return;
         }
 
-        case `buy`: {
-            if (args.length < 1) {
-                msg.reply(`**usage**: ?buy <item>`);
-                return;
+        case `buy`:
+            {
+                if (args.length < 1) {
+                    msg.reply(`**usage**: ?buy <item>`);
+                    return;
+                }
+                if (args[0].toLocaleLowerCase() === 'horse') {
+                    await start_horse_purchase(user, msg);
+                    return;
+                }
             }
-            if (args[0].toLocaleLowerCase() === 'horse') {
-                await start_horse_purchase(user, msg);
-                return;
+            break;
+        case `sell`:
+            {
+                if (args.length < 1) {
+                    msg.reply(`**usage**: ?sell <horse name>`);
+                    return;
+                }
+                let name = '';
+                args.forEach((a) => {
+                    name += a + ' ';
+                });
+                name = name.substring(0, name.length - 1);
+                name = name.toLowerCase();
+                const horse = find_horse(guild.horses, name);
+
+                if (horse) {
+                    if (horse.owner === user.name) {
+                        await sell_horse(user, horse, msg);
+                    } else {
+                        await msg.reply(`Cannot sell. You do not own this horse.`);
+                    }
+                } else {
+                    await msg.reply(`Failed to find horse`);
+                }
             }
-        }
+            break;
+
+        case `horses`:
+        case `horse`:
+            {
+                if (args.length < 1) {
+                    await msg.reply(`**usage**: ?horse <name of horse>`);
+                    return;
+                }
+
+                let name = '';
+                args.forEach((a) => {
+                    name += a + ' ';
+                });
+                name = name.substring(0, name.length - 1);
+                name = name.toLowerCase();
+                const horse = find_horse(guild.horses, name);
+                if (horse) {
+                    await display_horse_stats(horse, msg);
+                } else {
+                    await msg.reply(`Failed to find horse`);
+                }
+            }
+            break;
+
+        case `graveyard`:
+        case `dead`:
+            await list_horse_graveyard(user, msg);
+            break;
+
+        case 'racers':
+        case 'show':
+            if (user.guildObj.horseRaceIsTakingBets) {
+                await list_horses(user, msg, true, user.guildObj.horsesInRace);
+                await display_placed_bets(user.guildObj.horseRaceBetPool, msg);
+            }
+            break;
+
+        case `mystable`:
+        case `mystables`:
+            {
+                let horses = [];
+                user.guildObj.horses.forEach((h: race_horse) => {
+                    if (h.ownerId === user.id) {
+                        horses.push(h);
+                    }
+                });
+                if (horses.length > 0) {
+                    await list_horses(user, msg, true, horses);
+                } else {
+                    msg.reply(`You don't have any horses`);
+                }
+            }
+            break;
+
+        case 'tophorse':
+        case 'tophorses':
+        case 'toph':
+            {
+                if (args.length < 1) {
+                    await display_top_horses(user, msg);
+                } else {
+                    if (args[0].includes('win')) {
+                        await display_top_horses(user, msg);
+                    } else if (args[0].includes('rate')) {
+                        await display_top_horses(user, msg, horse_rank_option.rate);
+                    } else if (args[0].includes('place')) {
+                        await display_top_horses(user, msg, horse_rank_option.place);
+                    } else if (args[0].includes('speed')) {
+                        await display_top_horses(user, msg, horse_rank_option.speed);
+                    } else if (args[0].includes('earn')) {
+                        await display_top_horses(user, msg, horse_rank_option.earned);
+                    }
+                }
+            }
+            break;
 
         case `stable`:
         case `stables`:
-            await list_horses(user, msg);
+            await list_horses(user, msg, false);
+            break;
+
+        case `stable2`:
+        case `stables2`:
+            {
+                if (user.guildObj.horses.length < 25) {
+                    msg.reply('There is no second stable. Not enough horses');
+                    return;
+                }
+                let horses = [];
+                for (let i = 25; i < user.guildObj.horses.length && i < 50; ++i) {
+                    horses.push(user.guildObj.horses[i]);
+                }
+                await list_horses(user, msg, false, horses);
+            }
             break;
 
         case `hr`:
@@ -468,11 +597,20 @@ client.on('messageCreate', async (msg) => {
             await start_horse_race_bet_taking(user, msg);
             break;
 
-        case `close`:
+        case 'start':
+        case 'close':
             await close_horse_race_betting(user, msg);
             break;
+        case `cancel`:
+            if (user.guildObj.horseRaceIsTakingBets) {
+                await msg.reply(`Horse betting has been cancelled`);
+                user.guildObj.horseRaceIsTakingBets = false;
+                user.guildObj.userRunningHorseBet = null;
+            }
+            break;
 
-        case 'horse':
+        case 'bet':
+        case 'b':
             {
                 if (args.length < 2) {
                     msg.reply(`**usage**: ?hr <bet> <horse number>`);
@@ -493,6 +631,42 @@ client.on('messageCreate', async (msg) => {
         case 'h':
         case 'help':
             display_help(msg);
+            break;
+        case 'nba':
+            {
+                const options = {
+                    method: 'GET',
+                    url: 'https://api-nba-v1.p.rapidapi.com/games/live/',
+                    //url: 'https://api-nba-v1.p.rapidapi.com/games/date/2022-01-10',
+                    headers: {
+                        'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com',
+                        'x-rapidapi-key': 'b947104b99mshba2e2dff616eac6p1427f9jsn1f4036ad5d20',
+                    },
+                };
+
+                Axios.request(options)
+                    .then(function (response) {
+                        const games = response.data['api'].games;
+                        if (games.length == 0) {
+                            msg.reply('There are no live NBA games at the moment.');
+                            return;
+                        }
+
+                        //console.log(response.data['api']);
+                        let embed = new Discord.MessageEmbed().setTitle(':basketball: Live Games :basketball:');
+                        let str = '';
+                        games.forEach((g) => {
+                            str = `Home: ${g.hTeam.shortName} ${g.hTeam.score.points}\n`;
+                            str += `Away: ${g.vTeam.shortName} ${g.vTeam.score.points}\n`;
+                            str += `Period: ${g.currentPeriod} | Clock: ${g.clock}\n`;
+                            embed.addFields({ name: `${g.hTeam.fullName} vs ${g.vTeam.fullName}`, value: str, inline: false });
+                        });
+                        msg.reply({ embeds: [embed] });
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                    });
+            }
             break;
 
         default:

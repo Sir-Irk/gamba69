@@ -32,7 +32,7 @@ export function make_it_rain(users: user_account[], giver: user_account, amount:
         msg.reply(`Error: you'll need to enter at least ${userArr.length - 1} bones to make it rain`);
         return;
     }
-    giver.bones -= amount;
+    giver.add_money(-amount);
     write_user_data_json(giver);
     //let str = '';
 
@@ -41,9 +41,9 @@ export function make_it_rain(users: user_account[], giver: user_account, amount:
         .setColor('#00AAFF');
 
     for (let i = 0; i < userArr.length; ++i) {
-        let u = userArr[i];
+        let u: user_account = userArr[i];
         if (u.id == giver.id) continue;
-        u.bones += perUserAmount;
+        u.add_money(perUserAmount);
         //str += `**${u.nickname}**\n`;
         embed.addFields({
             name: `**${u.nickname}**`,

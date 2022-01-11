@@ -1,5 +1,5 @@
 import fs from 'fs';
-import Discord from 'discord.js';
+import Discord, { Guild } from 'discord.js';
 const { Client } = Discord;
 
 import { boneSymbol, slotSymbols } from './symbols.js';
@@ -38,8 +38,7 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
     let str = `${user.nickname}, `;
     if (isNaN(bet) || bet == null || bet <= 0) {
         for (let i = 0; i < 10; ++i) {
-            str += `$ { EMOJIS.doubtfulSharkEmoji }
-      `;
+            str += `${EMOJIS.doubtfulSharkEmoji}`;
         }
         msg.reply(str);
         return false;
@@ -52,14 +51,14 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
 }
 
 export function user_is_playing_game(user: user_account, msg: Discord.Message<boolean>): boolean {
-    if (user.isPlayingGame) {
+    if (user.isPlayingGame || user.isWaitingOnHorseRace) {
         msg.reply(`${user.nickname}, You are already playing a game`);
         return true;
     }
     return false;
 }
 
-export function get_thousands_int(inStr: String) {
+export function get_suffix_int(inStr: String) {
     let result = 0;
     if (inStr.length > 0 && inStr[inStr.length - 1].toLowerCase() == 'k') {
         let bones = parseFloat(inStr.substring(0, inStr.length - 1));
@@ -67,6 +66,18 @@ export function get_thousands_int(inStr: String) {
             return -1;
         }
         result = Math.round(bones * 1000);
+    } else if (inStr.length > 0 && inStr[inStr.length - 1].toLowerCase() == 'm') {
+        let bones = parseFloat(inStr.substring(0, inStr.length - 1));
+        if (isNaN(bones)) {
+            return -1;
+        }
+        result = Math.round(bones * 1000000);
+    } else if (inStr.length > 0 && inStr[inStr.length - 1].toLowerCase() == 'b') {
+        let bones = parseFloat(inStr.substring(0, inStr.length - 1));
+        if (isNaN(bones)) {
+            return -1;
+        }
+        result = Math.round(bones * 1000000000);
     }
     return result;
 }
@@ -102,7 +113,7 @@ export function get_user_by_nickname(userAccounts: user_account[], nickname: str
     if (!nickname) return null;
 
     for (let i = 0; i < userAccounts.length; i++) {
-        if (userAccounts[i].nickname.toLowerCase() == nickname.toLowerCase()) {
+        if (userAccounts[i].nickname.toLowerCase() === nickname.toLowerCase()) {
             return userAccounts[i];
         }
     }
@@ -112,7 +123,7 @@ export function get_user_by_nickname(userAccounts: user_account[], nickname: str
 export function get_user_by_name(userAccounts: user_account[], username: string): user_account {
     if (!username) return null;
     for (let i = 0; i < userAccounts.length; i++) {
-        if (userAccounts[i].name.toLowerCase() == username.toLowerCase()) {
+        if (userAccounts[i].name.toLowerCase() === username.toLowerCase()) {
             return userAccounts[i];
         }
     }
@@ -121,7 +132,7 @@ export function get_user_by_name(userAccounts: user_account[], username: string)
 
 export function get_user(userAccounts, id) {
     for (let i = 0; i < userAccounts.length; i++) {
-        if (userAccounts[i].id == id) {
+        if (userAccounts[i].id === id) {
             return userAccounts[i];
         }
     }
@@ -183,8 +194,8 @@ export async function give_user_bones(
         msg.reply(`You can't give yourself bones, you dangus`);
         return;
     }
-    receiver.bones += amount;
-    gifter.bones -= amount;
+    receiver.add_money(amount);
+    gifter.add_money(-amount);
     write_user_data_json(gifter);
     write_user_data_json(receiver);
     msg.reply(`${receiver.name}, ${gifter.name} just gave you **${amount.toLocaleString('en-US')}** ${boneSymbol}`);
@@ -256,11 +267,12 @@ export function write_user_data_json(user: user_account): void {
     if (!json[guild]) {
         json[guild] = {
             guild_name: user.guildName,
-            houseBones: guildObj.houseBones,
         };
     }
 
     json[guild].horses = guildObj.horses;
+    json[guild].horseGraveyard = guildObj.horseGraveyard;
+    json[guild].houseBones = guildObj.houseBones;
 
     json[guild][id] = {
         username: user.name,
@@ -292,22 +304,6 @@ export async function load_users(): Promise<void> {
         guild.name = g.guild_name;
 
         guild.houseBones = g.houseBones;
-        for (const horseKey in json[guildKey]['horses']) {
-            const u = json[guildKey]['horses'][horseKey];
-            //if (u.placementAverage !== undefined) {
-            let horse = new race_horse(u.name, 0);
-            horse.wins = u.wins;
-            horse.races = u.races;
-
-            horse.placementAverage.count = u.placementAverage.count;
-            horse.placementAverage.sum = u.placementAverage.sum;
-            horse.speedAverage.count = u.speedAverage.count;
-            horse.speedAverage.sum = u.speedAverage.sum;
-            horse.age = u.age;
-            horse.owner = u.owner;
-            horse.speed = u.speed;
-            guild.horses.push(horse);
-        }
 
         userGuilds.push(guild);
 
@@ -350,6 +346,60 @@ export async function load_users(): Promise<void> {
             user.gameStats = u.gameStats as game_stats[];
             guild.users.push(user);
             console.log(`Loaded user: ${u.username} for guild ${json[guildKey].guild_name}`);
+        }
+
+        const keys = ['horses', 'horseGraveyard'];
+        for (let i = 0; i < keys.length; ++i) {
+            for (const horseKey in json[guildKey][keys[i]]) {
+                const u = json[guildKey][keys[i]][horseKey];
+                //if (u.placementAverage !== undefined) {
+                let horse = new race_horse(u.name, 0);
+                horse.wins = u.wins;
+                horse.races = u.races;
+
+                horse.placementAverage.count = u.placementAverage.count;
+                horse.placementAverage.sum = u.placementAverage.sum;
+                horse.speedAverage.count = u.speedAverage.count;
+                horse.speedAverage.sum = u.speedAverage.sum;
+                horse.commissionEarned = u.commissionEarned;
+                horse.commissionPayments = u.commissionPayments;
+                if (u.dateOfDeath) horse.dateOfDeath = u.dateOfDeath;
+                horse.age = u.age;
+                horse.owner = u.owner;
+                horse.speed = u.speed;
+
+                const owner = get_user(guild.users, u.ownerId);
+                if (owner) {
+                    horse.ownerId = owner.id;
+                } else {
+                    //console.log(`FAILED TO FIND USER ${u.owner}`);
+                }
+                if (i === 0) {
+                    guild.horses.push(horse);
+                } else {
+                    guild.horseGraveyard.push(horse);
+                }
+            }
+        }
+        guild.horseOwners = [];
+        for (let i = 0; i < guild.horses.length; ++i) {
+            guild.horses[i].handle = i;
+            if (!guild.horses[i].ownerId) {
+                guild.horseOwners.push(null);
+                continue;
+            }
+
+            for (let j = 0; j < guild.users.length; ++j) {
+                const u = guild.users[j];
+                if (u.id === guild.horses[i].ownerId) {
+                    guild.horseOwners.push(u);
+                    break;
+                }
+            }
+        }
+
+        if (guild.horses.length !== guild.horseOwners.length) {
+            console.log("Horse count doesn't match owner count");
         }
     }
 }
@@ -456,6 +506,11 @@ export async function display_user_stats(user: user_account, msg: Discord.Messag
         embed.addFields({ name: s.name, value: str, inline: true });
     });
 
+    embed.addFields({
+        name: `Highest bones acheived:`,
+        value: `${boneSymbol} ${user.highestBones.toLocaleString('en-US')}`,
+        inline: false,
+    });
     embed.addFields({ name: `Extra:`, value: `Stats recorded since 1/4/22`, inline: false });
 
     await msg.reply({ embeds: [embed] });
@@ -571,7 +626,7 @@ export async function display_help(msg: Discord.Message<boolean>): Promise<void>
 
 export function parse_bet(user: user_account, arg: any, msg: Discord.Message): number {
     let bet = get_percentage_int(user.bones, arg);
-    if (bet == 0) bet = get_thousands_int(arg);
+    if (bet == 0) bet = get_suffix_int(arg);
 
     if (bet == 0) {
         const parsedArg = parseInt(arg);

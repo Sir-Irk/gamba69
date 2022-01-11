@@ -13,6 +13,9 @@ export class bot_cfg {
     bjMessageDelay: number;
     horseBasePrice: number;
     maxHorsesPerUser: number;
+    maxHorseBets: number;
+    horseRaceBetTimeoutDuration: number;
+    horseRaceCommissionRate: number;
     constructor() {
         this.dailyBonus = 2500;
         this.dailyCollectionInterval = dayInMili;
@@ -25,8 +28,11 @@ export class bot_cfg {
         this.globalSlotPointsModifier = 1.0;
         this.bjMessageDelay = 1000;
         this.slotsMessageDelay = 1500;
-        this.horseBasePrice = 1000000;
+        this.horseBasePrice = 100000000;
         this.maxHorsesPerUser = 3;
+        this.maxHorseBets = 2;
+        this.horseRaceBetTimeoutDuration = 5 * minInMili;
+        this.horseRaceCommissionRate = 0.05;
     }
 }
 

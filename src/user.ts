@@ -1,8 +1,8 @@
 import { roulette_game_data } from './russian_roulette.js';
 import { blackjack_game_data } from './blackjack.js';
 import { game_category } from './utils.js';
-import { TypeFlags } from 'typescript';
 import { bet_pool, race_horse } from './horse_racing.js';
+import Discord from 'discord.js';
 
 export class game_stats {
     played: number;
@@ -26,6 +26,7 @@ export class user_account {
     nickname: string;
     bones: number;
     isPlayingGame: boolean;
+    isWaitingOnHorseRace: boolean;
     dailyCollectionTime: number;
     dailyStreak: number;
     charityCollectionTime: number;
@@ -35,6 +36,7 @@ export class user_account {
     workStartTime: number;
     highestBones: number;
     isBuyingHorse = false;
+    isNamingHorse = false;
     numHorsesOwned: number = 0;
 
     gameStats: game_stats[];
@@ -88,12 +90,19 @@ export class user_guild {
     users: user_account[];
     houseBones: number;
 
+    userRunningHorseBet: user_account;
     horseRaceIsTakingBets: boolean;
     horseRaceIsActive: boolean;
     horseRaceBetPool: bet_pool;
+    horseRaceBetStartTime: number;
+    horseRaceBetTimeoutCoroutine: any;
     horseTrackLen: number;
     horses: race_horse[];
+    horseGraveyard: race_horse[];
+    horseOwners: user_account[];
     horsesInRace: race_horse[];
+
+    horseBeingSold: boolean;
 
     constructor(id: string) {
         this.id = id;
@@ -103,8 +112,10 @@ export class user_guild {
         this.horseRaceIsActive = false;
         this.horseRaceIsTakingBets = false;
         this.horseRaceBetPool = new bet_pool();
+        this.horseRaceBetStartTime = 0;
         this.horseTrackLen = 65;
         this.horses = [];
+        this.horseGraveyard = [];
         this.horsesInRace = [];
     }
 }
