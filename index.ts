@@ -548,6 +548,7 @@ client.on('messageCreate', async (msg) => {
 
         case `mystable`:
         case `mystables`:
+        case `ms`:
             {
                 let horses = [];
                 user.guildObj.horses.forEach((h: race_horse) => {
