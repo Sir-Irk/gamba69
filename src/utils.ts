@@ -28,6 +28,20 @@ export enum game_category {
     count,
 }
 
+export function get_id_from_tag(tag: string) {
+    let result = null;
+    if (tag.length > 3) {
+        if (tag[0] === '<' && tag[1] === '@') {
+            if (tag[2] === '!') {
+                result = tag.substring(3, tag.length - 1);
+            } else {
+                result = tag.substring(2, tag.length - 1);
+            }
+        }
+    }
+    return result;
+}
+
 export function add_money_to_user(user: user_account, amount: number) {
     user.bones += amount;
     user.highestBones = Math.max(user.bones, user.highestBones);

@@ -36,6 +36,7 @@ import {
     prefix,
     display_guild_stats,
     shuffle,
+    get_id_from_tag,
 } from './src/utils.js';
 
 import {
@@ -341,17 +342,12 @@ client.on('messageCreate', async (msg) => {
             let bonesToGive = parse_bet(user, args[1], msg);
             if (bonesToGive <= 0) return;
 
-            let nameStr = args[0];
-            if (nameStr.length > 3) {
-                if (nameStr[0] === '<' && nameStr[1] === '@') {
-                    if (nameStr[2] === '!') {
-                        nameStr = nameStr.substring(3, nameStr.length - 1);
-                    } else {
-                        nameStr = nameStr.substring(2, nameStr.length - 1);
-                    }
-                }
+            let idStr = get_id_from_tag(args[0]);
+            if (idStr) {
+                await give_user_bones(guild.users, user, idStr, bonesToGive, msg);
+            } else {
+                msg.reply('Invalid tag');
             }
-            await give_user_bones(guild.users, user, nameStr, bonesToGive, msg);
             break;
 
         case 'gstats':
@@ -557,6 +553,7 @@ client.on('messageCreate', async (msg) => {
                     }
                 });
                 if (horses.length > 0) {
+                    msg.delete();
                     await list_horses(user, msg, true, horses);
                 } else {
                     msg.reply(`You don't have any horses`);
@@ -588,7 +585,23 @@ client.on('messageCreate', async (msg) => {
 
         case `stable`:
         case `stables`:
-            await list_horses(user, msg, false);
+            {
+                if (args.length > 0) {
+                    let horses = [];
+                    const userId = get_id_from_tag(args[0]);
+
+                    if (userId) {
+                        user.guildObj.horses.forEach((h: race_horse) => {
+                            if (h.ownerId === userId) horses.push(h);
+                        });
+                        await list_horses(user, msg, false, horses);
+                    } else {
+                        msg.reply('Invalid user tag');
+                    }
+                } else {
+                    await list_horses(user, msg, false);
+                }
+            }
             break;
 
         case `stable2`:
