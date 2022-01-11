@@ -612,6 +612,10 @@ client.on('messageCreate', async (msg) => {
         case 'bet':
         case 'b':
             {
+                if (!user.guildObj.horseRaceIsTakingBets) {
+                    msg.reply(`There is no horse race to bet on. Use **?hr** to open betting`);
+                    return;
+                }
                 if (args.length < 2) {
                     msg.reply(`**usage**: ?hr <bet> <horse number>`);
                     return;
@@ -619,7 +623,7 @@ client.on('messageCreate', async (msg) => {
                 let bet = parse_bet(user, args[1], msg);
                 let horseNum = parseInt(args[0]) - 1;
                 if (isNaN(horseNum) || horseNum < 0) {
-                    msg.reply(`Invalid horse number`);
+                    //msg.reply(`Invalid horse number`);
                     msg.reply(`**usage**: ?hr <bet> <horse number>`);
                     return;
                 }
