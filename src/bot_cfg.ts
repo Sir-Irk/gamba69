@@ -18,14 +18,14 @@ export class bot_cfg {
     horseRaceCommissionRate: number;
     maxHorseNameLength: number;
     constructor() {
-        this.dailyBonus = 2500;
+        this.dailyBonus = 1000000;
         this.dailyCollectionInterval = dayInMili;
         this.rouletteContinueTimeout = minInMili * 0.5;
         this.workDuration = hourInMili;
-        this.workSalaryMin = 2500;
-        this.workSalaryMax = 5000;
+        this.workSalaryMin = 500000;
+        this.workSalaryMax = 1000000;
         this.charityCollectionInterval = 5 * minInMili;
-        this.charityAmountInBones = 69;
+        this.charityAmountInBones = 6969;
         this.globalSlotPointsModifier = 1.0;
         this.bjMessageDelay = 1000;
         this.slotsMessageDelay = 1500;
