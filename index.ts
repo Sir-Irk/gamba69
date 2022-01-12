@@ -517,13 +517,7 @@ client.on('messageCreate', async (msg) => {
                     msg.reply(`**usage**: ?sell <horse name>`);
                     return;
                 }
-                let name = '';
-                args.forEach((a) => {
-                    name += a + ' ';
-                });
-                name = name.substring(0, name.length - 1);
-                name = name.toLowerCase();
-                const horse = find_horse(guild.horses, name);
+                const horse = find_horse(guild.horses, args.join());
 
                 if (horse) {
                     if (horse.owner === user.name) {
@@ -545,13 +539,7 @@ client.on('messageCreate', async (msg) => {
                     return;
                 }
 
-                let name = '';
-                args.forEach((a) => {
-                    name += a + ' ';
-                });
-                name = name.substring(0, name.length - 1);
-                name = name.toLowerCase();
-                const horse = find_horse(guild.horses, name);
+                const horse = find_horse(guild.horses, args.join());
                 if (horse) {
                     await display_horse_stats(horse, msg);
                 } else {
@@ -659,14 +647,7 @@ client.on('messageCreate', async (msg) => {
         case `horserace`:
             {
                 if (args.length > 0) {
-                    let name = '';
-                    args.forEach((a) => {
-                        name += a + ' ';
-                    });
-                    name = name.substring(0, name.length - 1);
-                    name = name.toLowerCase();
-
-                    let horse = find_horse(guild.horses, name);
+                    let horse = find_horse(guild.horses, args.join());
                     if (!horse) {
                         msg.reply('Failed to find horse');
                         return;
