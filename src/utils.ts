@@ -329,6 +329,10 @@ export async function load_users(): Promise<void> {
         let guildName = '';
         for (const userKey in json[guildKey]) {
             const u = json[guildKey][userKey];
+            if (!u) {
+                console.log(`failed to load user ${userKey}`);
+                continue;
+            }
             if (!u.bones) {
                 if (u.guild_name !== undefined) guildName = u.guild_name;
                 continue;
