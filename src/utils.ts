@@ -350,6 +350,7 @@ export async function load_users(): Promise<void> {
             let nickname = u.username;
 
             let user = new user_account(u.username, userKey, nickname, guildKey, guildName, guild, u.bones);
+            console.log('USER: ${user.name} ${user.id}');
             user.dailyCollectionTime = u.dailyCollectionTime;
 
             user.workStartTime = u.workStartTime;
