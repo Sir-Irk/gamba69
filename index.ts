@@ -87,7 +87,7 @@ function get_log_date_string() {
     return `${mm}-${dd}-${yyyy}-${hh}h-${mm}m-${ss}s`;
 }
 
-function log_error(message: string) {
+export function log_error(message: string) {
     const dateString = get_log_date_string();
     let path = `logs/ERROR_${get_random_string(6)}_${dateString}.log`;
     fs.writeFileSync(path, message + '\n');

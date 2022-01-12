@@ -8,7 +8,7 @@ import { GIFS, EMOJIS } from './media.js';
 import { game_stats, user_account, user_guild, user_state } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
 import { average_record, race_horse } from './horse_racing.js';
-import { DEBUG_MODE, DEBUG_TIMING } from '../index.js';
+import { DEBUG_MODE, DEBUG_TIMING, log_error } from '../index.js';
 
 export const userDataJsonPath = 'user_data.json';
 
@@ -390,13 +390,14 @@ export async function load_users(): Promise<void> {
                 horse.age = u.age;
                 horse.owner = u.owner;
                 horse.speed = u.speed;
+                horse.ownerId = u.ownerId;
 
-                const owner = get_user(guild.users, u.ownerId);
-                if (owner) {
-                    horse.ownerId = owner.id;
-                } else {
+                if (!horse.ownerId) {
+                    log_error(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
                     console.log(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
+                    process.abort();
                 }
+
                 if (i === 0) {
                     guild.horses.push(horse);
                 } else {
