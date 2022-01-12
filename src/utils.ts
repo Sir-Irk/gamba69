@@ -342,7 +342,7 @@ export async function load_users(): Promise<void> {
                 console.log(`failed to load user ${userKey}`);
                 continue;
             }
-            if (!u.bones) {
+            if (u.bones === undefined) {
                 if (u.guild_name !== undefined) guildName = u.guild_name;
                 continue;
             }
