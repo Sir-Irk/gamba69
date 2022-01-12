@@ -412,13 +412,18 @@ export async function load_users(): Promise<void> {
                 continue;
             }
 
+            let found = false;
             for (let j = 0; j < guild.users.length; ++j) {
                 const u = guild.users[j];
                 if (u.id === guild.horses[i].ownerId) {
                     guild.horseOwners.push(u);
                     console.log(`${i} pushing: ${u.name} ${guild.horses[i].name}`);
+                    found = true;
                     break;
                 }
+            }
+            if (!found) {
+                console.log(`Failed to find ${guild.horses[i].ownerId}`);
             }
         }
 
