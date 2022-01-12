@@ -63,9 +63,11 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
     return true;
 }
 
-export function user_is_playing_game(user: user_account, msg: Discord.Message<boolean>): boolean {
+export function user_is_playing_game(user: user_account, msg: Discord.Message<boolean>, printError: boolean = true): boolean {
     if (user.state !== user_state.none) {
-        msg.reply(`${user.nickname}, You are already playing a game`);
+        if (printError) {
+            msg.reply(`${user.nickname}, You are already playing a game`);
+        }
         return true;
     }
     return false;

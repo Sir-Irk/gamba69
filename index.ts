@@ -114,7 +114,7 @@ client.on('messageCreate', async (msg) => {
         case 'end':
         case 'e':
             {
-                if (user_is_playing_game(user, msg) && user.rl.counter > 0) {
+                if (user_is_playing_game(user, msg, false) && user.rl.counter > 0) {
                     user.state = user_state.none;
                     user.rl.counter = 0;
                     await msg.channel.send(`${user.nickname}, You have ended the game of roulette`);
