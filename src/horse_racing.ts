@@ -444,7 +444,6 @@ export async function list_horses(user: user_account, msg: Discord.Message, show
 
     let embed = new Discord.MessageEmbed().setTitle(`:horse: :farmer:  The Stables :woman_farmer: :horse:`).setColor('#BB2222');
 
-    let i = 0;
     for (let i = 0; i < horses.length && i < 25; ++i) {
         const h = horses[i];
         let percent = h.races > 0 ? Math.floor((h.wins / h.races) * 100) : 0;
@@ -459,7 +458,6 @@ export async function list_horses(user: user_account, msg: Discord.Message, show
         str += `Owner: `;
         str += h.owner ? `${h.owner}` : 'Kevin';
         embed.addFields({ name: `${i + 1}. :racehorse: ${h.name}`, value: str, inline: true });
-        ++i;
     }
 
     await msg.reply({ embeds: [embed] });
