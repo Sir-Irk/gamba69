@@ -15,6 +15,8 @@ import { EMOJIS, GIFS } from './src/media.js';
 
 const Axios = require('axios').default;
 
+export const DEBUG_MODE = true;
+
 import {
     client,
     userGuilds,
@@ -75,7 +77,9 @@ client.on('ready', () => {
 
 client.on('messageCreate', async (msg) => {
     if (msg.author.bot) return;
-    //if (msg.guildId !== `922243045787852890`) return;
+    if (DEBUG_MODE && msg.guildId !== `922243045787852890`) {
+        return;
+    }
     if (msg.content.startsWith(prefix)) return;
     if (!botInitialized) return;
 
@@ -170,7 +174,9 @@ client.on('messageCreate', async (msg) => {
 const casinoChannel = `<#923887321517031434>`;
 const noGambaPic = `https://i.imgur.com/I49CZW7.png`;
 client.on('messageCreate', async (msg) => {
-    //if (msg.guildId !== `922243045787852890`) return;
+    if (DEBUG_MODE && msg.guildId !== `922243045787852890`) {
+        return;
+    }
     if (msg.author.bot) return;
     if (!msg.content.startsWith(prefix)) return;
     if (!botInitialized) {

@@ -167,6 +167,7 @@ export async function rename_horse(user: user_account, horse: race_horse, newNam
     horse.name = newName;
     user.horseBeingRenamed = null;
     user.state = user_state.none;
+    write_user_data_json(user);
 }
 
 export async function start_horse_renaming(user: user_account, horses: race_horse[], name: string, msg: Discord.Message) {

@@ -8,6 +8,7 @@ import { GIFS, EMOJIS } from './media.js';
 import { game_stats, user_account, user_guild, user_state } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
 import { average_record, race_horse } from './horse_racing.js';
+import { DEBUG_MODE } from '../index.js';
 
 export const userDataJsonPath = 'user_data.json';
 
@@ -311,7 +312,7 @@ export async function load_users(): Promise<void> {
     let json = JSON.parse(file.toString());
 
     for (const guildKey in json) {
-        //if (guildKey !== `922243045787852890`) continue;
+        if (DEBUG_MODE && guildKey !== `922243045787852890`) continue;
         let guild = new user_guild(guildKey);
 
         const g = json[guildKey];
