@@ -15,7 +15,7 @@ import { EMOJIS, GIFS } from './src/media.js';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
+export const DEBUG_MODE = true;
 export const DEBUG_TIMING = false;
 
 import {
@@ -64,6 +64,11 @@ import {
 import { daily_bones, start_working } from './src/misc.js';
 
 let botInitialized = false;
+
+process.on('uncaughtException', function (err) {
+    console.log('Caught exception: ' + err);
+    process.abort();
+});
 
 async function initialize() {
     await load_users();
@@ -260,6 +265,7 @@ client.on('messageCreate', async (msg) => {
             }
             break;
         case 'daily':
+            user = null;
             daily_bones(user, msg);
             write_user_data_json(user);
             break;
