@@ -93,6 +93,7 @@ export class race_horse {
         this.speedAverage = new average_record();
         this.commissionEarned = 0;
         this.commissionPayments = 0;
+        this.ownerId = null;
         this.dateOfDeath = 'N/A';
     }
 }
