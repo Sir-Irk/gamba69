@@ -265,7 +265,6 @@ client.on('messageCreate', async (msg) => {
             }
             break;
         case 'daily':
-            user = null;
             daily_bones(user, msg);
             write_user_data_json(user);
             break;
