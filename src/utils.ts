@@ -580,13 +580,18 @@ export async function display_games(msg: Discord.Message<boolean>): Promise<void
                 inline: false,
             },
             {
-                name: `${prefix} roulette<bet> or ${prefix} rl<bet>`,
+                name: `${prefix}roulette<bet> or ${prefix}rl<bet>`,
                 value: `Russian Roulette.Risk your life if you have the balls`,
                 inline: false,
             },
             {
-                name: `${prefix} blackjack<bet> or ${prefix} bl<bet>`,
+                name: `${prefix}blackjack<bet> or ${prefix}bl<bet>`,
                 value: `Good old Blackjack`,
+                inline: false,
+            },
+            {
+                name: `${prefix}horserace<bet> or ${prefix}hr<bet>`,
+                value: `Start taking bets for a horse race`,
                 inline: false,
             }
         );
@@ -618,57 +623,97 @@ export async function display_help(msg: Discord.Message<boolean>): Promise<void>
         .setColor('#C69B6D')
         .addFields(
             {
-                name: `${prefix} daily`,
+                name: `${prefix}daily`,
                 value: 'Get your daily bonus. Consecutive days give a bonus',
                 inline: false,
             },
             {
-                name: `${prefix} work`,
+                name: `${prefix}work`,
                 value: 'Make yourself useful. Earn a paycheck after a duration',
                 inline: false,
             },
             {
-                name: `${prefix} games`,
+                name: `${prefix}games`,
                 value: 'Lists games you can play',
                 inline: false,
             },
             {
-                name: `${prefix} bones`,
+                name: `${prefix}bones`,
                 value: 'Display your bone balance',
                 inline: false,
             },
             {
-                name: `${prefix} richest`,
+                name: `${prefix}shop`,
+                value: 'List items available to buy',
+                inline: false,
+            },
+            {
+                name: `${prefix}buy <item>`,
+                value: 'Buy an item',
+                inline: false,
+            },
+            {
+                name: `${prefix}stables`,
+                value: 'Show the horse stables',
+                inline: false,
+            },
+            {
+                name: `${prefix}mystable or ${prefix}ms`,
+                value: 'Show your stable',
+                inline: false,
+            },
+            {
+                name: `${prefix}horse <name>`,
+                value: `Look up a horse's stats by name. You can use partial names`,
+                inline: false,
+            },
+            {
+                name: `${prefix}rename <horse>`,
+                value: 'rename one of your horses. Note: the horse must have 0 races',
+                inline: false,
+            },
+            {
+                name: `${prefix}graveyard or ${prefix}dead`,
+                value: 'List horses that have passed away',
+                inline: false,
+            },
+            {
+                name: `${prefix}richest`,
                 value: 'Display the top 10 richest users on the server',
                 inline: false,
             },
             {
-                name: `${prefix} give<user> <amount>`,
+                name: `${prefix}give<user> <amount>`,
                 value: 'Give your bones to another user',
                 inline: false,
             },
             {
-                name: `${prefix} rain<amount> <number of users>(optional)`,
+                name: `${prefix}rain<amount> <number of users>(optional)`,
                 value: 'Make it rain on random people in the server. "Amount" is divided amongst everyone unless you specify a number of users',
                 inline: false,
             },
             {
-                name: `${prefix} stats`,
+                name: `${prefix}stats`,
                 value: 'Display your stats for casino games',
                 inline: false,
             },
             {
-                name: `${prefix} charity`,
+                name: `${prefix}gStats`,
+                value: 'Display stats for entire server',
+                inline: false,
+            },
+            {
+                name: `${prefix}charity`,
                 value: 'For the less fortunate. Receive a small donation if you are broke',
                 inline: false,
             },
             {
-                name: `${prefix} house`,
+                name: `${prefix}house`,
                 value: 'Show how many bones I the house(aka Kevin) has',
                 inline: false,
             },
             {
-                name: `${prefix} kys`,
+                name: `${prefix}kys`,
                 value: "Tells me to kill myself... I'll do it too",
                 inline: false,
             }
