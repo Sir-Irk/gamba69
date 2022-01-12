@@ -393,7 +393,7 @@ export async function load_users(): Promise<void> {
                 if (owner) {
                     horse.ownerId = owner.id;
                 } else {
-                    //console.log(`FAILED TO FIND USER ${u.owner}`);
+                    console.log(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
                 }
                 if (i === 0) {
                     guild.horses.push(horse);
