@@ -350,7 +350,6 @@ export async function load_users(): Promise<void> {
             let nickname = u.username;
 
             let user = new user_account(u.username, userKey, nickname, guildKey, guildName, guild, u.bones);
-            console.log('USER: ${user.name} ${user.id}');
             user.dailyCollectionTime = u.dailyCollectionTime;
 
             user.workStartTime = u.workStartTime;
@@ -409,7 +408,6 @@ export async function load_users(): Promise<void> {
             guild.horses[i].handle = i;
             if (!guild.horses[i].ownerId) {
                 guild.horseOwners.push(null);
-                console.log(`${i} pushing: null ${guild.horses[i].name}`);
                 continue;
             }
 
@@ -418,7 +416,6 @@ export async function load_users(): Promise<void> {
                 const u = guild.users[j];
                 if (u.id === guild.horses[i].ownerId) {
                     guild.horseOwners.push(u);
-                    console.log(`${i} pushing: ${u.name} ${guild.horses[i].name}`);
                     found = true;
                     break;
                 }
