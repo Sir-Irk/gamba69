@@ -114,6 +114,17 @@ function make_track_string(
     fireGun: boolean = false,
     showGun: boolean = true
 ) {
+    let names = [];
+    for (let i = 0; i < horses.length; ++i) {
+        const charLim = 32;
+        if (horses[i].name.length > charLim && !horses[i].name.includes(`<:`)) {
+            names.push(`${horses[i].name.slice(0, charLim)}...`);
+        } else {
+            names.push(horses[i].name);
+        }
+    }
+    console.assert(names.length == horses.length);
+
     let str = `:checkered_flag:`;
     for (let i = 0; i < trackLen * 1.58; ++i) {
         str += ' ';
@@ -134,9 +145,53 @@ function make_track_string(
                 str += `-`;
             }
         }
-        str += ` | ${horses[h].name}\n`;
+        str += ` | ${names[h]}\n`;
     }
     return str;
+}
+
+export async function confirm_horse_sale(user: user_account, horse: race_horse, msg: Discord.Message) {
+    await msg.reply(`You are about to sell ${horse.name}. Are you sure?(y/n)`);
+    user.state = user_state.sellingHorse;
+    user.horseToSell = horse;
+    return;
+}
+
+export async function rename_horse(user: user_account, horse: race_horse, newName: string, msg: Discord.Message) {
+    if (newName.length > cfg.maxHorseNameLength) {
+        await msg.reply(`Name too long. Max characters: ${cfg.maxHorseNameLength}`);
+        return;
+    }
+
+    msg.reply(`You have renamed ${horse.name} to ${newName}`);
+    horse.name = newName;
+    user.horseBeingRenamed = null;
+    user.state = user_state.none;
+}
+
+export async function start_horse_renaming(user: user_account, horses: race_horse[], name: string, msg: Discord.Message) {
+    let horse = find_horse(horses, name);
+    const guild = user.guildObj;
+    if (!horse) {
+        await msg.reply('Failed to find horse. **Usage:** ?rename <horse name> <new name>');
+        return;
+    }
+
+    const owner = guild.horseOwners[horse.handle];
+    if (!owner || owner.id !== horse.ownerId) {
+        await msg.reply('You can only rename a horse you own');
+        return;
+    }
+
+    if (horse.races > 0) {
+        await msg.reply('You can only rename a horse if they have never raced');
+        return;
+    }
+
+    user.state = user_state.renamingHorse;
+    user.horseBeingRenamed = horse;
+
+    await msg.reply(`Enter a new name for ${horse.name}:`);
 }
 
 export async function sell_horse(user: user_account, horse: race_horse, msg: Discord.Message) {
@@ -145,7 +200,9 @@ export async function sell_horse(user: user_account, horse: race_horse, msg: Dis
 
     const sellPrice = Math.round(cfg.horseBasePrice * 0.5);
     user.add_money(sellPrice);
-    user.guildObj.horseGraveyard.push(horse);
+    if (horse.races > 0) {
+        user.guildObj.horseGraveyard.push(horse);
+    }
     user.numHorsesOwned--;
     msg.reply(`You have sold ${horse.name} to the glue factory for **${sellPrice.toLocaleString('en-US')}** ${boneSymbol}`);
 
@@ -159,29 +216,9 @@ export async function sell_horse(user: user_account, horse: race_horse, msg: Dis
 
     user.guildObj.horses = user.guildObj.horses.filter((h) => h.name !== horse.name);
 
-    guild.horseOwners = [];
-    let horses = user.guildObj.horses;
-    for (let i = 0; i < horses.length; ++i) {
-        horses[i].handle = i;
+    update_horse_handles(user.guildObj);
 
-        if (!horses[i].ownerId) {
-            guild.horseOwners.push(null);
-            continue;
-        }
-
-        for (let j = 0; j < guild.users.length; ++j) {
-            const u = guild.users[j];
-            if (u.id === horses[i].ownerId) {
-                guild.horseOwners.push(u);
-                break;
-            }
-        }
-    }
-    console.assert(
-        horses.length === guild.horseOwners.length,
-        `HORSE COUNT(${horses.length}) DOESN'T MATCH OWNER COUNT: Occured when selling ${horse.name}`
-    );
-
+    user.state = user_state.none;
     write_user_data_json(user);
     user.guildObj.horseBeingSold = false;
 }
@@ -201,7 +238,35 @@ export async function start_horse_purchase(user: user_account, msg: Discord.Mess
     msg.reply(`You are about to buy a horse! Please enter a name for it now :horse:`);
 }
 
+export function update_horse_handles(guild: user_guild) {
+    guild.horseOwners = [];
+    let horses = guild.horses;
+
+    for (let i = 0; i < horses.length; ++i) {
+        horses[i].handle = i;
+
+        if (!horses[i].ownerId) {
+            guild.horseOwners.push(null);
+            continue;
+        }
+
+        for (let j = 0; j < guild.users.length; ++j) {
+            const u = guild.users[j];
+            if (u.id === horses[i].ownerId) {
+                guild.horseOwners.push(u);
+                break;
+            }
+        }
+    }
+
+    console.assert(horses.length === guild.horseOwners.length, `HORSE COUNT(${horses.length}) DOESN'T MATCH OWNER COUNT`);
+}
+
 export async function purchase_horse(user: user_account, horseName: string, msg: Discord.Message) {
+    if (horseName.length > cfg.maxHorseNameLength) {
+        msg.reply(`That name is too long. ${cfg.maxHorseNameLength} characters max`);
+        return;
+    }
     let horse = new race_horse(horseName, 0, 1 + Math.random() * 5);
     horse.owner = user.name;
     horse.ownerId = user.id;
@@ -213,7 +278,9 @@ export async function purchase_horse(user: user_account, horseName: string, msg:
         }
     }
     horses.push(horse);
+    update_horse_handles(user.guildObj);
     msg.reply(`Congrats! You bought your new horse ${horseName}! It walks out of the stable and approaches you...`);
+    write_user_data_json(user);
     user.state = user_state.none;
     user.add_money(-cfg.horseBasePrice);
     user.numHorsesOwned++;
@@ -232,7 +299,6 @@ export async function purchase_horse(user: user_account, horseName: string, msg:
     await delay(1000);
     str = `${EMOJIS.sihEmoji} :heart: :horse:`;
     await msgRef.edit(str);
-    write_user_data_json(user);
 }
 
 export enum horse_rank_option {
@@ -514,7 +580,7 @@ export async function display_placed_bets(pool: bet_pool, msg: Discord.Message) 
     await msg.channel.send({ embeds: [embed] });
 }
 
-export async function start_horse_race_bet_taking(user: user_account, msg: Discord.Message) {
+export async function start_horse_race_bet_taking(user: user_account, horse: race_horse, msg: Discord.Message) {
     if (user.guildObj.horseRaceIsActive || user_is_playing_game(user, msg)) return;
     if (user.guildObj.horseRaceIsTakingBets) {
         await msg.reply(`Bets are already being taken. Use **?bet** <horse number> <bet> to place your bet`);
@@ -532,10 +598,15 @@ export async function start_horse_race_bet_taking(user: user_account, msg: Disco
     user.guildObj.horseRaceBetTimeoutCoroutine = horse_race_bet_timeout(user.guildObj, cfg.horseRaceBetTimeoutDuration, msg);
     user.guildObj.horseRaceBetTimeoutCoroutine.next();
 
-    let horseList = [...user.guildObj.horses];
+    let horseList = [...user.guildObj.horses.filter((h) => !horse || horse.name !== h.name)];
     shuffle(horseList);
     user.guildObj.horsesInRace = [];
-    for (let i = 0; i < 6; ++i) {
+    let startIdx = 0;
+    if (horse) {
+        user.guildObj.horsesInRace.push(horse);
+        startIdx = 1;
+    }
+    for (let i = startIdx; i < 6; ++i) {
         user.guildObj.horsesInRace.push(horseList[i]);
     }
 

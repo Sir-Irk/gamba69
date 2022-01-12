@@ -432,6 +432,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
         user.update_stats(true, prize, game_category.blackjack);
     }
     user.bj.isDealingHand = false;
+    user.state = user_state.none;
 }
 
 export { blackjack_game_data, blackjack_game, blackjack_game_continue, blackjack_option, blackjack_sum_cards };

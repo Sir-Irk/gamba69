@@ -25,6 +25,7 @@ export enum user_state {
     buyingHorse,
     sellingHorse,
     namingHorse,
+    renamingHorse,
 }
 
 export class user_account {
@@ -47,8 +48,10 @@ export class user_account {
     workStartTime: number;
     highestBones: number;
     numHorsesOwned: number = 0;
+    horseToSell: race_horse = null;
 
     gameStats: game_stats[];
+    horseBeingRenamed: race_horse;
     constructor(
         username: string,
         userId: string,

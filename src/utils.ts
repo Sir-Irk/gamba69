@@ -655,7 +655,7 @@ export function parse_bet(user: user_account, arg: any, msg: Discord.Message): n
     }
 
     if (bet <= 0) {
-        msg.reply(`Error : Invalid amount of bones`);
+        msg.reply(`Error : Invalid amount of bones: entered **${bet}**`);
         return 0;
     }
 

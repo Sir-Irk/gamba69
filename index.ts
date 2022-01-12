@@ -55,8 +55,12 @@ import {
     find_horse,
     sell_horse,
     list_horse_graveyard,
+    confirm_horse_sale,
+    rename_horse,
+    start_horse_renaming,
 } from './src/horse_racing.js';
 import { finished } from 'stream';
+import { fail } from 'assert';
 
 let botInitialized = false;
 
@@ -157,9 +161,13 @@ client.on('messageCreate', async (msg) => {
     }
     write_user_data_json(user);
 
-    if (user.state === user_state.buyingHorse) {
-        await purchase_horse(user, msg.content, msg);
-        return;
+    switch (user.state) {
+        case user_state.buyingHorse:
+            await purchase_horse(user, msg.content, msg);
+            return;
+        case user_state.renamingHorse:
+            await rename_horse(user, user.horseBeingRenamed, msg.content, msg);
+            return;
     }
 
     switch (msg.content.toLowerCase()) {
@@ -179,6 +187,27 @@ client.on('messageCreate', async (msg) => {
                 }
             }
             break;
+
+        case 'yes':
+        case 'y':
+            {
+                if (user.state === user_state.sellingHorse && user.horseToSell) {
+                    await sell_horse(user, user.horseToSell, msg);
+                }
+            }
+            break;
+        case 'no':
+        case 'n':
+            {
+                if (user.state === user_state.sellingHorse && user.horseToSell) {
+                    user.state = user_state.none;
+                    user.horseToSell = null;
+                    msg.reply('You have cancelled the sale');
+                }
+            }
+            break;
+        case 'no':
+        case 'n':
 
         case 'hit':
         case 'h':
@@ -228,18 +257,8 @@ client.on('messageCreate', async (msg) => {
     }
 
     const body = msg.content.slice(prefix.length);
-    //const args = body.split(' ');
     const args = body.split(/[\s,]+/);
     const command = args.shift().toLowerCase();
-
-    //console.log(`Args: ${args}`);
-    /*
-    for (let i = 0; i < args.length; ++i) {
-        args[i] = args[i].trim();
-    }
-    */
-
-    //console.log(`Args: ${args}`);
 
     let guild = get_guild(userGuilds, msg.guild.id);
     if (!guild) {
@@ -464,6 +483,16 @@ client.on('messageCreate', async (msg) => {
             return;
         }
 
+        case `rename`:
+            {
+                if (args.length < 1) {
+                    msg.reply(`**usage:** ?rename <horse>`);
+                    return;
+                }
+
+                start_horse_renaming(user, guild.horses, args.join(), msg);
+            }
+            break;
         case `buy`:
             {
                 if (args.length < 1) {
@@ -478,10 +507,12 @@ client.on('messageCreate', async (msg) => {
             break;
         case `sell`:
             {
+                /*
                 if (user.id !== '150097140448886784') {
                     msg.reply(`Sorry that command is down for bug fixing. Try again later`);
                     return;
                 }
+                */
                 if (args.length < 1) {
                     msg.reply(`**usage**: ?sell <horse name>`);
                     return;
@@ -496,7 +527,7 @@ client.on('messageCreate', async (msg) => {
 
                 if (horse) {
                     if (horse.owner === user.name) {
-                        await sell_horse(user, horse, msg);
+                        await confirm_horse_sale(user, horse, msg);
                     } else {
                         await msg.reply(`Cannot sell. You do not own this horse.`);
                     }
@@ -553,7 +584,6 @@ client.on('messageCreate', async (msg) => {
                     }
                 });
                 if (horses.length > 0) {
-                    msg.delete();
                     await list_horses(user, msg, true, horses);
                 } else {
                     msg.reply(`You don't have any horses`);
@@ -587,6 +617,7 @@ client.on('messageCreate', async (msg) => {
         case `stables`:
             {
                 if (args.length > 0) {
+                    msg.delete();
                     let horses = [];
                     const userId = get_id_from_tag(args[0]);
 
@@ -594,7 +625,11 @@ client.on('messageCreate', async (msg) => {
                         user.guildObj.horses.forEach((h: race_horse) => {
                             if (h.ownerId === userId) horses.push(h);
                         });
-                        await list_horses(user, msg, false, horses);
+                        if (horses.length == 0) {
+                            msg.reply('Failed to find users stable');
+                        } else {
+                            await list_horses(user, msg, false, horses);
+                        }
                     } else {
                         msg.reply('Invalid user tag');
                     }
@@ -622,7 +657,25 @@ client.on('messageCreate', async (msg) => {
         case `hr`:
         case `race`:
         case `horserace`:
-            await start_horse_race_bet_taking(user, msg);
+            {
+                if (args.length > 0) {
+                    let name = '';
+                    args.forEach((a) => {
+                        name += a + ' ';
+                    });
+                    name = name.substring(0, name.length - 1);
+                    name = name.toLowerCase();
+
+                    let horse = find_horse(guild.horses, name);
+                    if (!horse) {
+                        msg.reply('Failed to find horse');
+                        return;
+                    }
+                    await start_horse_race_bet_taking(user, horse, msg);
+                } else {
+                    await start_horse_race_bet_taking(user, null, msg);
+                }
+            }
             break;
 
         case 'start':
@@ -630,7 +683,7 @@ client.on('messageCreate', async (msg) => {
             await close_horse_race_betting(user, msg);
             break;
         case `cancel`:
-            if (user.guildObj.horseRaceIsTakingBets) {
+            if (user.guildObj.horseRaceIsTakingBets && user === guild.userRunningHorseBet) {
                 await msg.reply(`Horse betting has been cancelled`);
                 user.guildObj.horseRaceIsTakingBets = false;
                 user.guildObj.userRunningHorseBet = null;
@@ -678,20 +731,34 @@ client.on('messageCreate', async (msg) => {
 
                 Axios.request(options)
                     .then(function (response) {
-                        const games = response.data['api'].games;
-                        if (games.length == 0) {
+                        const allGames = response.data['api'].games;
+                        if (allGames.length == 0) {
                             msg.reply('There are no live NBA games at the moment.');
                             return;
+                        }
+
+                        let games = allGames;
+                        if (args.length > 0) {
+                            games = allGames.filter(
+                                (g) =>
+                                    g.hTeam.shortName.toLowerCase() === args[0].toLocaleLowerCase() ||
+                                    g.vTeam.shortName.toLocaleLowerCase() === args[0].toLocaleLowerCase()
+                            );
+
+                            if (games.length === 0) {
+                                msg.reply('Failed to find team');
+                                return;
+                            }
                         }
 
                         //console.log(response.data['api']);
                         let embed = new Discord.MessageEmbed().setTitle(':basketball: Live Games :basketball:');
                         let str = '';
                         games.forEach((g) => {
-                            str = `Home: ${g.hTeam.shortName} ${g.hTeam.score.points}\n`;
-                            str += `Away: ${g.vTeam.shortName} ${g.vTeam.score.points}\n`;
+                            str = `${g.hTeam.score.points} : ${g.hTeam.shortName} (home)\n`;
+                            str += `${g.vTeam.score.points} : ${g.vTeam.shortName} (away)\n`;
                             str += `Period: ${g.currentPeriod} | Clock: ${g.clock}\n`;
-                            embed.addFields({ name: `${g.hTeam.fullName} vs ${g.vTeam.fullName}`, value: str, inline: false });
+                            embed.addFields({ name: `${g.hTeam.fullName} vs ${g.vTeam.fullName} @ ${g.arena}`, value: str, inline: false });
                         });
                         msg.reply({ embeds: [embed] });
                     })
