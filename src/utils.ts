@@ -663,6 +663,7 @@ export function parse_bet(user: user_account, arg: any, msg: Discord.Message): n
     return bet;
 }
 
+/*
 export class graphics {
     blackjackBackground = Canvas.loadImage('./images/green_felt.jpg');
     slotsBackground = Canvas.loadImage('./images/slots_test.png');
@@ -673,8 +674,9 @@ export async function load_graphics() {
     const graphicsObj = new graphics();
     return graphicsObj;
 }
-
 export let graphicsObj = new graphics();
+*/
+
 function resolve(resolve: any, ms: Promise<any>) {
     throw new Error('Function not implemented.');
 }

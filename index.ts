@@ -25,7 +25,6 @@ import {
     user_is_playing_game,
     give_user_bones,
     load_users,
-    load_graphics,
     print_richest_list,
     display_user_stats,
     display_games,
@@ -63,7 +62,6 @@ import { daily_bones, start_working } from './src/misc.js';
 let botInitialized = false;
 
 async function initialize() {
-    await load_graphics();
     await load_users();
     console.log('finished loading users');
     botInitialized = true;
