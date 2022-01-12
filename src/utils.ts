@@ -58,7 +58,11 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
         return false;
     }
     if (user.bones < bet) {
-        msg.reply(`${user.nickname}, you don't have enough bones to bet **${bet}**. You have **${user.bones}** ${boneSymbol}`);
+        msg.reply(
+            `${user.nickname}, you don't have enough bones to bet **${bet.toLocaleString(
+                'en-US'
+            )}**. You have **${user.bones.toLocaleString('en-US')}** ${boneSymbol}`
+        );
         return false;
     }
     return true;
