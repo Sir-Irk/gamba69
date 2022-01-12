@@ -1,5 +1,5 @@
 import fs from 'fs';
-import Discord, { Guild } from 'discord.js';
+import Discord from 'discord.js';
 const { Client } = Discord;
 
 import { boneSymbol, slotSymbols } from './symbols.js';
@@ -7,7 +7,6 @@ import { slotPoints } from './slots.js';
 import { GIFS, EMOJIS } from './media.js';
 import { game_stats, user_account, user_guild, user_state } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
-import { number } from 'zod';
 import { average_record, race_horse } from './horse_racing.js';
 
 export const userDataJsonPath = 'user_data.json';

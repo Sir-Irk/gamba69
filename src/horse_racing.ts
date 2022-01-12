@@ -2,7 +2,7 @@ import { user_account, user_guild, user_state } from './user.js';
 import { delay, game_category, shuffle, user_is_playing_game, verify_bet } from './utils.js';
 import { EMOJIS, GIFS } from './media.js';
 import { boneSymbol } from './symbols.js';
-import Discord, { Emoji, Guild, MessageReaction, MessageSelectMenu } from 'discord.js';
+import Discord from 'discord.js';
 import { cfg } from './bot_cfg.js';
 import { write_user_data_json } from './utils.js';
 
@@ -492,9 +492,9 @@ async function* horse_race_bet_timeout(guild: user_guild, duration: number, msg:
             guild.horseRaceIsTakingBets = false;
             guild.horseRaceBetPool.entries = [];
             guild.horsesInRace = [];
-            guild.horseRaceBetPool.entries.forEach((e) => {
-                e.user.state = user_state.none;
-            });
+            for (let i = 0; i < guild.users.length; ++i) {
+                guild.users[i].state = user_state.none;
+            }
             msg.reply(`Horse betting has been cancelled: Waited too long to start the race`);
             yield;
         }
