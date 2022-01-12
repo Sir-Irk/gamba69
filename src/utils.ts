@@ -393,7 +393,6 @@ export async function load_users(): Promise<void> {
                 horse.ownerId = u.ownerId;
 
                 if (!horse.ownerId && horse.owner) {
-                    log_error(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
                     console.log(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
                 }
 
@@ -422,7 +421,7 @@ export async function load_users(): Promise<void> {
         }
 
         if (guild.horses.length !== guild.horseOwners.length) {
-            console.log("Horse count doesn't match owner count");
+            console.log(`Horse count doesn't match owner count: horses: ${guild.horses.length} vs owners: ${guild.horseOwners.length}`);
         }
     }
 }
