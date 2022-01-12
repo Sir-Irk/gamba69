@@ -1,5 +1,6 @@
 import Discord, { Emoji, TextChannel } from 'discord.js';
 import { readFileSync } from 'fs';
+import fs from 'fs';
 const config = JSON.parse(readFileSync('config.json').toString());
 
 import { user_account, user_guild, user_state } from './src/user.js';
@@ -15,7 +16,7 @@ import { EMOJIS, GIFS } from './src/media.js';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
+export const DEBUG_MODE = true;
 export const DEBUG_TIMING = false;
 
 import {
@@ -38,6 +39,8 @@ import {
     shuffle,
     get_id_from_tag,
     load_nicknames,
+    userDataJsonPath,
+    delay,
 } from './src/utils.js';
 
 import {
@@ -65,15 +68,58 @@ import { daily_bones, start_working } from './src/misc.js';
 
 let botInitialized = false;
 
+function get_random_string(length: number): string {
+    var randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var result = '';
+    for (var i = 0; i < length; i++) {
+        result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+    }
+    return result;
+}
+
+function get_log_date_string() {
+    let today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const hh = String(today.getHours()).padStart(2, '0');
+    const ss = String(today.getSeconds()).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    return `${mm}-${dd}-${yyyy}-${hh}h-${mm}m-${ss}s`;
+}
+
+function log_error(message: string) {
+    const dateString = get_log_date_string();
+    let path = `logs/ERROR_${get_random_string(6)}_${dateString}.log`;
+    fs.writeFileSync(path, message + '\n');
+}
+
+function backup_user_data() {
+    let file = fs.readFileSync(userDataJsonPath);
+    const dateString = get_log_date_string();
+    let path = `backups/user_data_${get_random_string(6)}_${dateString}.json`;
+    fs.writeFileSync(path, file);
+}
+
 process.on('uncaughtException', function (err) {
+    backup_user_data();
+    log_error(err.toString());
     console.log('Caught exception: ' + err);
     process.abort();
 });
+
+async function hourlyBackUp() {
+    while (true) {
+        await delay(1 * hourInMili);
+        backup_user_data();
+        console.log('Backup of user_data.json made');
+    }
+}
 
 async function initialize() {
     await load_users();
     console.log('finished loading users');
     load_nicknames(userGuilds);
+    hourlyBackUp();
     botInitialized = true;
 }
 
@@ -265,6 +311,7 @@ client.on('messageCreate', async (msg) => {
             }
             break;
         case 'daily':
+            user = null;
             daily_bones(user, msg);
             write_user_data_json(user);
             break;

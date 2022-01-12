@@ -276,7 +276,7 @@ export async function print_richest_list(users: user_account[], msg: Discord.Mes
 }
 
 let isWritingJSONfile = false;
-export function write_user_data_json(user: user_account): void {
+export function write_user_data_json(user: user_account) {
     if (DEBUG_TIMING) console.time('Writing user data...');
     while (isWritingJSONfile) {}
     isWritingJSONfile = true;
@@ -310,6 +310,8 @@ export function write_user_data_json(user: user_account): void {
     fs.writeFileSync(userDataJsonPath, JSON.stringify(json, null, 2));
     isWritingJSONfile = false;
     if (DEBUG_TIMING) console.timeEnd('Writing user data...');
+
+    return json;
 }
 
 export async function load_users(): Promise<void> {
