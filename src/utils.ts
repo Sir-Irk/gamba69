@@ -8,7 +8,7 @@ import { GIFS, EMOJIS } from './media.js';
 import { game_stats, user_account, user_guild, user_state } from './user.js';
 import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
 import { average_record, race_horse } from './horse_racing.js';
-import { DEBUG_MODE } from '../index.js';
+import { DEBUG_MODE, DEBUG_TIMING } from '../index.js';
 
 export const userDataJsonPath = 'user_data.json';
 
@@ -277,6 +277,7 @@ export async function print_richest_list(users: user_account[], msg: Discord.Mes
 
 let isWritingJSONfile = false;
 export function write_user_data_json(user: user_account): void {
+    if (DEBUG_TIMING) console.time('Writing user data...');
     while (isWritingJSONfile) {}
     isWritingJSONfile = true;
     let file = fs.readFileSync(userDataJsonPath);
@@ -308,6 +309,7 @@ export function write_user_data_json(user: user_account): void {
     };
     fs.writeFileSync(userDataJsonPath, JSON.stringify(json, null, 2));
     isWritingJSONfile = false;
+    if (DEBUG_TIMING) console.timeEnd('Writing user data...');
 }
 
 export async function load_users(): Promise<void> {
@@ -316,7 +318,12 @@ export async function load_users(): Promise<void> {
     let json = JSON.parse(file.toString());
 
     for (const guildKey in json) {
-        if (DEBUG_MODE && guildKey !== `922243045787852890`) continue;
+        if (DEBUG_MODE && guildKey !== `922243045787852890`) {
+            continue;
+        } else if (!DEBUG_MODE && guildKey === `922243045787852890`) {
+            continue;
+        }
+
         let guild = new user_guild(guildKey);
 
         const g = json[guildKey];
