@@ -1,5 +1,5 @@
 import fs from 'fs';
-import Discord from 'discord.js';
+import Discord, { GuildScheduledEvent } from 'discord.js';
 const { Client } = Discord;
 
 import { boneSymbol, slotSymbols } from './symbols.js';
@@ -320,7 +320,6 @@ export async function load_users(): Promise<void> {
         let guild = new user_guild(guildKey);
 
         const g = json[guildKey];
-        let guildObj = await client.guilds.fetch(guildKey);
         guild.name = g.guild_name;
 
         guild.houseBones = g.houseBones;
@@ -336,19 +335,6 @@ export async function load_users(): Promise<void> {
             }
 
             let nickname = u.username;
-            if (guildObj) {
-                let m = null;
-                try {
-                    m = await guildObj.members.fetch(userKey);
-                } catch {
-                    continue;
-                }
-
-                nickname = m.nickname;
-                if (!nickname) {
-                    nickname = u.username;
-                }
-            }
 
             let user = new user_account(u.username, userKey, nickname, guildKey, guildName, guild, u.bones);
             user.dailyCollectionTime = u.dailyCollectionTime;
@@ -426,6 +412,32 @@ export async function load_users(): Promise<void> {
             console.log("Horse count doesn't match owner count");
         }
     }
+}
+
+export async function load_nicknames(guilds: user_guild[]) {
+    for (let guildIdx = 0; guildIdx < guilds.length; ++guildIdx) {
+        let guild = guilds[guildIdx];
+        let g = await client.guilds.fetch(guild.id);
+        for (let i = 0; i < guild.users.length; ++i) {
+            let m = null;
+            try {
+                let g = await client.guilds.fetch(guild.users[i].guildObj.id);
+                m = await g.members.fetch(guild.users[i].id);
+            } catch {
+                console.log(`Failed to fetch members for guild ${guild.name}: ${guild.id}`);
+                guild.users[i].nickname = guild.users[i].name;
+                return;
+            }
+
+            if (!m.nickname) {
+                guild.users[i].nickname = guild.users[i].name;
+            } else {
+                guild.users[i].nickname = m.nickname;
+            }
+        }
+    }
+
+    console.log('Finished loading nicknames');
 }
 
 class game_stat_display {

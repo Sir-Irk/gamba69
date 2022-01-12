@@ -36,6 +36,7 @@ import {
     display_guild_stats,
     shuffle,
     get_id_from_tag,
+    load_nicknames,
 } from './src/utils.js';
 
 import {
@@ -66,6 +67,7 @@ let botInitialized = false;
 async function initialize() {
     await load_users();
     console.log('finished loading users');
+    load_nicknames(userGuilds);
     botInitialized = true;
 }
 

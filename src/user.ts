@@ -1,6 +1,6 @@
 import { roulette_game_data } from './russian_roulette.js';
 import { blackjack_game_data } from './blackjack.js';
-import { game_category } from './utils.js';
+import { client, game_category } from './utils.js';
 import { bet_pool, race_horse } from './horse_racing.js';
 import Discord from 'discord.js';
 
@@ -34,7 +34,7 @@ export class user_account {
     guildName: string;
     guildObj: user_guild;
     name: string;
-    nickname: string;
+    _nickname: string;
     bones: number;
 
     state: user_state;
@@ -55,7 +55,7 @@ export class user_account {
     constructor(
         username: string,
         userId: string,
-        nickname: string,
+        _nickname: string,
         guildId: string,
         guildName: string,
         guildObj: user_guild,
@@ -67,7 +67,6 @@ export class user_account {
         this.guildName = guildName;
         this.guildObj = guildObj;
         this.name = username;
-        this.nickname = nickname;
         this.bones = numBones;
         this.highestBones = 0;
         this.dailyCollectionTime = 0;
@@ -78,6 +77,17 @@ export class user_account {
         this.workPaycheck = 0;
         this.workStartTime = 0;
         this.numHorsesOwned = 0;
+        this._nickname = null;
+    }
+
+    set nickname(name: string) {
+        this._nickname = name;
+    }
+    get nickname() {
+        if (!this._nickname) {
+            this._nickname = this.name;
+        }
+        return this._nickname;
     }
 
     public add_money(amount: number) {
