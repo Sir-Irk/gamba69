@@ -392,10 +392,9 @@ export async function load_users(): Promise<void> {
                 horse.speed = u.speed;
                 horse.ownerId = u.ownerId;
 
-                if (!horse.ownerId) {
+                if (!horse.ownerId && horse.owner) {
                     log_error(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
                     console.log(`FAILED TO FIND USER ${u.owner} id ${u.ownerID}`);
-                    process.abort();
                 }
 
                 if (i === 0) {
