@@ -513,6 +513,8 @@ client.on('messageCreate', async (msg) => {
             {
                 let horses = [];
                 user.guildObj.horses.forEach((h: race_horse) => {
+                    console.log(`Horse owner: ${h.ownerId}`);
+                    console.log(`User       : ${user.id}`);
                     if (h.ownerId === user.id) {
                         horses.push(h);
                     }
