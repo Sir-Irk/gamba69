@@ -477,7 +477,7 @@ client.on('messageCreate', async (msg) => {
             let embed = new Discord.MessageEmbed().setTitle(`Shop`).setColor('#BB2222');
             embed.addFields(
                 { name: ':horse: Horse', value: `${boneSymbol} ${cfg.horseBasePrice.toLocaleString('en-US')}`, inline: true },
-                { name: ':rooster: Cock (coming soon)', value: `${boneSymbol} ${cfg.cockBasePrice.toLocaleString('en-US')}`, inline: true }
+                { name: ':rooster: Cock', value: `${boneSymbol} ${cfg.cockBasePrice.toLocaleString('en-US')}`, inline: true }
             );
             msg.reply({ embeds: [embed] });
             return;
