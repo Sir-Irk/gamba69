@@ -19,3 +19,12 @@ export const slotSymbols = [
         '<:CURLYWELL:911754179524059186>',
     ],
 ];
+
+export const cockEmojis = [
+    '<:cock_01_facing_right:930980907102404699>',
+    '<:cock_02_facing_right:930980972973920286>',
+    '<:cock_03_facing_right:930981006624821279>',
+    '<:cock_01_facing_left:930980846037520404>',
+    '<:cock_02_facing_left:930980939625037844>',
+    '<:cock_03_facing_left:930980988123771002>',
+];

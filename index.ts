@@ -11,7 +11,7 @@ import { slots_game } from './src/slots.js';
 import { make_it_rain } from './src/rain.js';
 import { cfg } from './src/bot_cfg.js';
 import { dayInMili, hourInMili, minInMili } from './src/constants.js';
-import { boneSymbol } from './src/symbols.js';
+import { boneSymbol, cockEmojis } from './src/symbols.js';
 import { EMOJIS, GIFS } from './src/media.js';
 
 const Axios = require('axios').default;
@@ -695,6 +695,35 @@ client.on('messageCreate', async (msg) => {
                 }
 
                 await process_horse_race_bet(user, horseNum, bet, msg);
+            }
+            break;
+
+        case 'cock':
+            {
+                const msgRef = await msg.reply('Fight!');
+                await delay(1000);
+                const p0emojis = cockEmojis.slice(0, 3);
+                const p1emojis = cockEmojis.slice(3, 6);
+                let str = `${EMOJIS.interestedSharkEmoji}   ${p0emojis[0]}          ${p1emojis[0]}`;
+
+                await msgRef.edit(str);
+                await delay(1000);
+                str = `${EMOJIS.interestedSharkEmoji}    ${p0emojis[0]}     ${p1emojis[0]}`;
+                await msgRef.edit(str);
+                await delay(1000);
+                str = `${EMOJIS.interestedSharkEmoji}     ${p0emojis[0]}   ${p1emojis[0]}`;
+                await msgRef.edit(str);
+                await delay(1000);
+                str = `${EMOJIS.interestedSharkEmoji}       ${p0emojis[1]}${p1emojis[0]}`;
+                await msgRef.edit(str);
+                await delay(1000);
+                str = `${EMOJIS.interestedSharkEmoji}       ${p0emojis[2]}${p1emojis[1]}`;
+                await msgRef.edit(str);
+                await delay(1000);
+                str = `${EMOJIS.interestedSharkEmoji}          ${p1emojis[1]}`;
+                await msgRef.edit(str);
+                await delay(1000);
+                await msg.reply('RIP');
             }
             break;
 
