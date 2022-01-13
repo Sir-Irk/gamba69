@@ -16,7 +16,7 @@ import { EMOJIS, GIFS } from './src/media.js';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
+export const DEBUG_MODE = true;
 export const DEBUG_TIMING = false;
 
 import {
@@ -475,7 +475,10 @@ client.on('messageCreate', async (msg) => {
 
         case `shop`: {
             let embed = new Discord.MessageEmbed().setTitle(`Shop`).setColor('#BB2222');
-            embed.addFields({ name: ':horse: Horse', value: `${boneSymbol} ${cfg.horseBasePrice.toLocaleString('en-US')}`, inline: true });
+            embed.addFields(
+                { name: ':horse: Horse', value: `${boneSymbol} ${cfg.horseBasePrice.toLocaleString('en-US')}`, inline: true },
+                { name: ':rooster: Cock (coming soon)', value: `${boneSymbol} ${cfg.cockBasePrice.toLocaleString('en-US')}`, inline: true }
+            );
             msg.reply({ embeds: [embed] });
             return;
         }
@@ -496,9 +499,13 @@ client.on('messageCreate', async (msg) => {
                     msg.reply(`**usage**: ?buy <item>`);
                     return;
                 }
-                if (args[0].toLocaleLowerCase() === 'horse') {
-                    await start_horse_purchase(user, msg);
-                    return;
+                switch (args[0].toLocaleLowerCase()) {
+                    case 'horse':
+                        await start_horse_purchase(user, msg);
+                        return;
+                    case 'cock':
+                        msg.reply('Cumming soon');
+                        break;
                 }
             }
             break;

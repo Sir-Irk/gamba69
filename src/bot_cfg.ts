@@ -12,6 +12,7 @@ export class bot_cfg {
     slotsMessageDelay: number;
     bjMessageDelay: number;
     horseBasePrice: number;
+    cockBasePrice: number;
     maxHorsesPerUser: number;
     maxHorseBets: number;
     horseRaceBetTimeoutDuration: number;
@@ -35,6 +36,7 @@ export class bot_cfg {
         this.horseRaceBetTimeoutDuration = 5 * minInMili;
         this.horseRaceCommissionRate = 0.05;
         this.maxHorseNameLength = 64;
+        this.cockBasePrice = 5000000;
     }
 }
 
