@@ -272,8 +272,8 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
     if (option === blackjack_option.resign) {
         const halfBet = Math.floor(user.bj.bet * 0.5);
         const prize = halfBet;
-        user.add_money(prize);
-        user.update_stats(false, prize, game_category.blackjack);
+        user.add_money(-prize);
+        user.update_stats(false, -prize, game_category.blackjack);
         msg.reply(`${user.nickname}, You chose to surrender and lose half your bet: **${halfBet}** ${boneSymbol}`);
         user.state = user_state.none;
         return;
