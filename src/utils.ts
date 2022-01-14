@@ -1,23 +1,20 @@
-import fs from 'fs';
-import Discord, { GuildScheduledEvent } from 'discord.js';
-const { Client } = Discord;
+import * as fs from 'fs';
+import * as Discord from 'discord.js';
 
-import { boneSymbol, slotSymbols } from './symbols.js';
-import { slotPoints } from './slots.js';
-import { GIFS, EMOJIS } from './media.js';
-import { game_stats, user_account, user_guild, user_state } from './user.js';
-import { Canvas, fillWithEmoji } from 'discord-emoji-canvas';
-import { average_record, race_horse } from './horse_racing.js';
-import { DEBUG_MODE, DEBUG_TIMING, log_error } from '../index.js';
+import { boneSymbol, slotSymbols } from './symbols';
+import { slotPoints } from './slots';
+import { GIFS, EMOJIS } from './media';
+import { game_stats, user_account, user_guild, user_state } from './user';
+import { race_horse } from './horse_racing';
+import { client, DEBUG_MODE, DEBUG_TIMING, log_error } from '../index';
 
 export const userDataJsonPath = 'user_data.json';
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const client = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
 export const prefix = '?';
 
-export let userGuilds = [];
+export let userGuilds: user_guild[] = [];
 
 export enum game_category {
     blackjack,
@@ -54,15 +51,16 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
         for (let i = 0; i < 10; ++i) {
             str += `${EMOJIS.doubtfulSharkEmoji}`;
         }
-        msg.reply(str);
+        if (msg) msg.reply(str);
         return false;
     }
     if (user.bones < bet) {
-        msg.reply(
-            `${user.nickname}, you don't have enough bones to bet **${bet.toLocaleString(
-                'en-US'
-            )}**. You have **${user.bones.toLocaleString('en-US')}** ${boneSymbol}`
-        );
+        if (msg)
+            msg.reply(
+                `${user.nickname}, you don't have enough bones to bet **${bet.toLocaleString(
+                    'en-US'
+                )}**. You have **${user.bones.toLocaleString('en-US')}** ${boneSymbol}`
+            );
         return false;
     }
     return true;
@@ -150,7 +148,7 @@ export function get_user_by_name(userAccounts: user_account[], username: string)
     return null;
 }
 
-export function get_user(userAccounts, id) {
+export function get_user(userAccounts: user_account[], id: string) {
     for (let i = 0; i < userAccounts.length; i++) {
         if (userAccounts[i].id === id) {
             return userAccounts[i];
@@ -159,7 +157,7 @@ export function get_user(userAccounts, id) {
     return null;
 }
 
-export function get_guild(guilds, id) {
+export function get_guild(guilds: user_guild[], id: string) {
     for (let i = 0; i < guilds.length; i++) {
         if (guilds[i].id == id) {
             return guilds[i];

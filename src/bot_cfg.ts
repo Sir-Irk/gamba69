@@ -1,4 +1,4 @@
-import { dayInMili, hourInMili, minInMili } from './constants.js';
+import { dayInMili, hourInMili, minInMili } from './constants';
 export class bot_cfg {
     dailyBonus: number;
     dailyCollectionInterval: number;

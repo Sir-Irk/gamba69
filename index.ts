@@ -1,26 +1,28 @@
-import Discord, { Emoji, TextChannel } from 'discord.js';
+import * as Discord from 'discord.js';
+const { Client } = Discord;
+export const client: Discord.Client = new Client({ intents: ['GUILDS', 'GUILD_MESSAGES'] });
+import { Emoji, TextChannel } from 'discord.js';
 import { readFileSync } from 'fs';
-import fs from 'fs';
+import * as fs from 'fs';
 const config = JSON.parse(readFileSync('config.json').toString());
 
-import { user_account, user_guild, user_state } from './src/user.js';
-import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack.js';
-import { roulette_game, roulette_game_continue } from './src/russian_roulette.js';
-import { dice_game } from './src/dice.js';
-import { slots_game } from './src/slots.js';
-import { make_it_rain } from './src/rain.js';
-import { cfg } from './src/bot_cfg.js';
-import { dayInMili, hourInMili, minInMili } from './src/constants.js';
-import { boneSymbol, cockEmojis } from './src/symbols.js';
-import { EMOJIS, GIFS } from './src/media.js';
+import { user_account, user_guild, user_state } from './src/user';
+import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack';
+import { roulette_game, roulette_game_continue } from './src/russian_roulette';
+import { dice_game } from './src/dice';
+import { slots_game } from './src/slots';
+import { make_it_rain } from './src/rain';
+import { cfg } from './src/bot_cfg';
+import { dayInMili, hourInMili, minInMili } from './src/constants';
+import { boneSymbol, cockEmojis } from './src/symbols';
+import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
+export const DEBUG_MODE = true;
 export const DEBUG_TIMING = false;
 
 import {
-    client,
     userGuilds,
     get_guild,
     get_user,
@@ -41,7 +43,7 @@ import {
     load_nicknames,
     userDataJsonPath,
     delay,
-} from './src/utils.js';
+} from './src/utils';
 
 import {
     close_horse_race_betting,
@@ -62,9 +64,9 @@ import {
     confirm_horse_sale,
     rename_horse,
     start_horse_renaming,
-} from './src/horse_racing.js';
+} from './src/horse_racing';
 
-import { daily_bones, start_working } from './src/misc.js';
+import { daily_bones, start_working } from './src/misc';
 
 let botInitialized = false;
 
@@ -116,7 +118,9 @@ async function hourlyBackUp() {
 }
 
 async function initialize() {
-    await load_users();
+    await load_users().catch((e) => {
+        console.log('failed to load users');
+    });
     console.log('finished loading users');
     load_nicknames(userGuilds);
     hourlyBackUp();
@@ -569,7 +573,7 @@ client.on('messageCreate', async (msg) => {
         case `mystables`:
         case `ms`:
             {
-                let horses = [];
+                let horses: race_horse[] = [];
                 user.guildObj.horses.forEach((h: race_horse) => {
                     if (h.ownerId === user.id) {
                         horses.push(h);
@@ -610,7 +614,7 @@ client.on('messageCreate', async (msg) => {
             {
                 if (args.length > 0) {
                     msg.delete();
-                    let horses = [];
+                    let horses: race_horse[] = [];
                     const userId = get_id_from_tag(args[0]);
 
                     if (userId) {
@@ -744,7 +748,7 @@ client.on('messageCreate', async (msg) => {
                 };
 
                 Axios.request(options)
-                    .then(function (response) {
+                    .then(function (response: { data: { [x: string]: { games: any } } }) {
                         const allGames = response.data['api'].games;
                         if (allGames.length == 0) {
                             msg.reply('There are no live NBA games at the moment.');
@@ -754,7 +758,7 @@ client.on('messageCreate', async (msg) => {
                         let games = allGames;
                         if (args.length > 0) {
                             games = allGames.filter(
-                                (g) =>
+                                (g: { hTeam: { shortName: string }; vTeam: { shortName: string } }) =>
                                     g.hTeam.shortName.toLowerCase() === args[0].toLocaleLowerCase() ||
                                     g.vTeam.shortName.toLocaleLowerCase() === args[0].toLocaleLowerCase()
                             );
@@ -768,15 +772,27 @@ client.on('messageCreate', async (msg) => {
                         //console.log(response.data['api']);
                         let embed = new Discord.MessageEmbed().setTitle(':basketball: Live Games :basketball:');
                         let str = '';
-                        games.forEach((g) => {
-                            str = `${g.hTeam.score.points} : ${g.hTeam.shortName} (home)\n`;
-                            str += `${g.vTeam.score.points} : ${g.vTeam.shortName} (away)\n`;
-                            str += `Period: ${g.currentPeriod} | Clock: ${g.clock}\n`;
-                            embed.addFields({ name: `${g.hTeam.fullName} vs ${g.vTeam.fullName} @ ${g.arena}`, value: str, inline: false });
-                        });
+                        games.forEach(
+                            (g: {
+                                hTeam: { score: { points: any }; shortName: any; fullName: any };
+                                vTeam: { score: { points: any }; shortName: any; fullName: any };
+                                currentPeriod: any;
+                                clock: any;
+                                arena: any;
+                            }) => {
+                                str = `${g.hTeam.score.points} : ${g.hTeam.shortName} (home)\n`;
+                                str += `${g.vTeam.score.points} : ${g.vTeam.shortName} (away)\n`;
+                                str += `Period: ${g.currentPeriod} | Clock: ${g.clock}\n`;
+                                embed.addFields({
+                                    name: `${g.hTeam.fullName} vs ${g.vTeam.fullName} @ ${g.arena}`,
+                                    value: str,
+                                    inline: false,
+                                });
+                            }
+                        );
                         msg.reply({ embeds: [embed] });
                     })
-                    .catch(function (error) {
+                    .catch(function (error: any) {
                         console.error(error);
                     });
             }

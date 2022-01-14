@@ -1,10 +1,10 @@
-import { user_account, user_guild, user_state } from './user.js';
-import { delay, game_category, shuffle, user_is_playing_game, verify_bet } from './utils.js';
-import { EMOJIS, GIFS } from './media.js';
-import { boneSymbol } from './symbols.js';
-import Discord from 'discord.js';
-import { cfg } from './bot_cfg.js';
-import { write_user_data_json } from './utils.js';
+import { user_account, user_guild, user_state } from './user';
+import { delay, game_category, shuffle, user_is_playing_game, verify_bet } from './utils';
+import { EMOJIS, GIFS } from './media';
+import { boneSymbol } from './symbols';
+import * as Discord from 'discord.js';
+import { cfg } from './bot_cfg';
+import { write_user_data_json } from './utils';
 
 class bet_pool_entry {
     user: user_account;
@@ -485,7 +485,7 @@ export async function close_horse_race_betting(user: user_account, msg: Discord.
     start_horse_race(user, msg);
 }
 
-async function* horse_race_bet_timeout(guild: user_guild, duration: number, msg: Discord.Message) {
+async function* horse_race_bet_timeout(guild: user_guild, duration: number, msg: Discord.Message): any {
     while (guild.horseRaceIsTakingBets) {
         let timePassed = Date.now() - guild.horseRaceBetStartTime;
         if (timePassed > duration) {
@@ -554,7 +554,7 @@ export async function process_horse_race_bet(user: user_account, horseNum: numbe
 export async function display_placed_bets(pool: bet_pool, msg: Discord.Message) {
     let embed = new Discord.MessageEmbed().setTitle(`:horse_racing:  Placed Bets  :horse_racing:`).setColor('#AA8822');
 
-    let betters = {};
+    let betters: any = {};
     let betSum = 0;
     pool.entries.forEach((e: bet_pool_entry) => {
         if (!betters[e.user.nickname]) {
@@ -700,8 +700,8 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
 
     placements[0].wins++;
 
-    let winners = [];
-    let losers = [];
+    let winners: horse_race_prize_winners[][] = [];
+    let losers: bet_pool_entry[] = [];
 
     const prizePortions = [0.6, 0.3, 0.1];
 

@@ -1,8 +1,7 @@
-import { roulette_game_data } from './russian_roulette.js';
-import { blackjack_game_data } from './blackjack.js';
-import { client, game_category } from './utils.js';
-import { bet_pool, race_horse } from './horse_racing.js';
-import Discord from 'discord.js';
+import { roulette_game_data } from './russian_roulette';
+import { blackjack_game_data } from './blackjack';
+import { game_category } from './utils';
+import { bet_pool, race_horse } from './horse_racing';
 
 export class game_stats {
     played: number;

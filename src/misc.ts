@@ -4,7 +4,7 @@ import { GIFS, EMOJIS } from './media';
 import { boneSymbol } from './symbols';
 import { user_account } from './user';
 import { user_is_playing_game } from './utils';
-import Discord from 'discord.js';
+import * as Discord from 'discord.js';
 
 export async function start_working(user: user_account, msg: Discord.Message<boolean>) {
     if (user_is_playing_game(user, msg)) return;

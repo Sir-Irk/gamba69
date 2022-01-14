@@ -1,10 +1,10 @@
-import { boneSymbol } from './symbols.js';
-import { cfg } from './bot_cfg.js';
-import { verify_bet, user_is_playing_game, delay, shuffle, add_money_to_user, parse_bet, game_category } from './utils.js';
+import { boneSymbol } from './symbols';
+import { cfg } from './bot_cfg';
+import { verify_bet, user_is_playing_game, delay, shuffle, add_money_to_user, parse_bet, game_category } from './utils';
 //import { get_thousands_int, get_percentage_int, shuffle } from './utils.mjs';
-import { GIFS, EMOJIS } from './media.js';
-import { user_account, user_state } from './user.js';
-import Discord from 'discord.js';
+import { GIFS, EMOJIS } from './media';
+import { user_account, user_state } from './user';
+import * as Discord from 'discord.js';
 
 const BJ_DECK_COUNT = 2;
 
@@ -157,11 +157,11 @@ function make_blackjack_hand_string(cards: number[], count: number, sum: number)
     return result;
 }
 
-function blackjack_game_end(user) {
+function blackjack_game_end(user: user_account) {
     user.bj.round = 0;
     user.bj.lossStreak = 0;
     user.bj.isDealingHand = false;
-    user.isPlayingGame = false;
+    user.state = user_state.none;
 }
 
 const blackjack_option = {

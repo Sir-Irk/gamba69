@@ -1,7 +1,7 @@
-import { boneSymbol } from './symbols.js';
-import { verify_bet, user_is_playing_game, shuffle, write_user_data_json } from './utils.js';
-import Discord from 'discord.js';
-import { user_account } from './user.js';
+import { boneSymbol } from './symbols';
+import { verify_bet, user_is_playing_game, shuffle, write_user_data_json } from './utils';
+import * as Discord from 'discord.js';
+import { user_account } from './user';
 
 export function make_it_rain(users: user_account[], giver: user_account, amount: number, numUsers: number, msg: Discord.Message) {
     if (users.length == 0) return;

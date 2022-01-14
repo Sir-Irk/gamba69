@@ -1,10 +1,9 @@
-import { cfg } from './bot_cfg.js';
-import { boneSymbol, slotSymbols, slotBlanks } from './symbols.js';
-import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
-import { GIFS } from './media.js';
-import Discord from 'discord.js';
-import { user_account, user_state } from './user.js';
-import { DEBUG_TIMING } from '../index.js';
+import { cfg } from './bot_cfg';
+import { boneSymbol, slotSymbols, slotBlanks } from './symbols';
+import { verify_bet, user_is_playing_game, delay, game_category } from './utils';
+import { GIFS } from './media';
+import * as Discord from 'discord.js';
+import { user_account, user_state } from './user';
 
 const slotMessages = [
     [
@@ -48,7 +47,7 @@ function random_slot(weights: number[]): number {
 
 export async function slots_game(user: user_account, bet: number, msg: Discord.Message): Promise<void> {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
-    user.state = user_state.none;
+    user.state = user_state.playingGame;
     const betStr = bet.toLocaleString('en-US');
     if (bet == user.bones) {
         await msg.channel.send(

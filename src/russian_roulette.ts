@@ -1,9 +1,9 @@
-import { boneSymbol } from './symbols.js';
-import { cfg } from './bot_cfg.js';
-import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
-import { EMOJIS, GIFS } from './media.js';
-import { user_account, user_state } from './user.js';
-import Discord from 'discord.js';
+import { boneSymbol } from './symbols';
+import { cfg } from './bot_cfg';
+import { verify_bet, user_is_playing_game, delay, game_category } from './utils';
+import { EMOJIS, GIFS } from './media';
+import { user_account, user_state } from './user';
+import * as Discord from 'discord.js';
 
 export class roulette_game_data {
     roll: number;

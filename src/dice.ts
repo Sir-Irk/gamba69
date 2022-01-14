@@ -1,8 +1,8 @@
-import { diceEmoji, boneSymbol } from './symbols.js';
-import { verify_bet, user_is_playing_game, delay, game_category } from './utils.js';
-import { EMOJIS, GIFS } from './media.js';
-import { user_account, user_state } from './user.js';
-import Discord from 'discord.js';
+import { diceEmoji, boneSymbol } from './symbols';
+import { verify_bet, user_is_playing_game, delay, game_category } from './utils';
+import { EMOJIS, GIFS } from './media';
+import { user_account, user_state } from './user';
+import * as Discord from 'discord.js';
 
 export async function dice_game(user: user_account, bet: number, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
