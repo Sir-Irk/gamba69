@@ -19,7 +19,7 @@ import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = true;
+export const DEBUG_MODE = false;
 export const DEBUG_TIMING = false;
 
 import {
