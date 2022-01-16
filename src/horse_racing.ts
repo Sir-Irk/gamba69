@@ -46,6 +46,22 @@ export class average_record {
     }
 }
 
+function horse_name_is_unique(guild: user_guild, name: string): boolean {
+    const horses = guild.horses;
+    const graveyard = guild.horseGraveyard;
+    for (let i = 0; i < horses.length; ++i) {
+        if (horses[i].name.toLowerCase() === name.toLowerCase()) {
+            return false;
+        }
+    }
+    for (let i = 0; i < graveyard.length; ++i) {
+        if (graveyard[i].name.toLowerCase() === name.toLowerCase()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export function find_horse(horses: race_horse[], name: string) {
     for (let i = 0; i < horses.length; ++i) {
         const h: race_horse = horses[i];
@@ -163,6 +179,11 @@ export async function rename_horse(user: user_account, horse: race_horse, newNam
         return;
     }
 
+    if (!horse_name_is_unique(user.guildObj, newName)) {
+        msg.reply(`There is already a horse with that name. Please choose a unique name`);
+        return;
+    }
+
     msg.reply(`You have renamed ${horse.name} to ${newName}`);
     horse.name = newName;
     user.horseBeingRenamed = null;
@@ -269,24 +290,27 @@ export async function purchase_horse(user: user_account, horseName: string, msg:
         msg.reply(`That name is too long. ${cfg.maxHorseNameLength} characters max`);
         return;
     }
+
+    if (!horse_name_is_unique(user.guildObj, horseName)) {
+        msg.reply(`There is already a horse with that name. Please choose a unique name`);
+        return;
+    }
+
     let horse = new race_horse(horseName, 0, 1 + Math.random() * 5);
     horse.owner = user.name;
     horse.ownerId = user.id;
+
     let horses = user.guildObj.horses;
-    for (let i = 0; i < horses.length; ++i) {
-        if (horses[i].name === horseName) {
-            msg.reply('That horse name already exists. Try purchasing again with a diffrent name');
-            return;
-        }
-    }
     horses.push(horse);
     user.guildObj.horsesInQueue.push(horse);
     update_horse_handles(user.guildObj);
+
     msg.reply(`Congrats! You bought your new horse ${horseName}! It walks out of the stable and approaches you...`);
-    write_user_data_json(user);
     user.state = user_state.none;
     user.add_money(-cfg.horseBasePrice);
     user.numHorsesOwned++;
+    write_user_data_json(user);
+
     await delay(3000);
     let msgRef = await msg.reply(`${EMOJIS.sihEmoji}`);
     let str = '';
