@@ -55,7 +55,7 @@ export function find_horse(horses: race_horse[], name: string) {
     }
     for (let i = 0; i < horses.length; ++i) {
         const h = horses[i];
-        if (h.name.toLowerCase().includes(name)) {
+        if (h.name.toLowerCase().includes(name.toLowerCase())) {
             return h;
         }
     }
