@@ -49,7 +49,7 @@ export class average_record {
 export function find_horse(horses: race_horse[], name: string) {
     for (let i = 0; i < horses.length; ++i) {
         const h: race_horse = horses[i];
-        if (h.name.toLowerCase() === name) {
+        if (h.name.toLowerCase() === name.toLowerCase()) {
             return h;
         }
     }

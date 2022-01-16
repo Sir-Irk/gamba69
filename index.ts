@@ -650,9 +650,9 @@ client.on('messageCreate', async (msg) => {
             }
             break;
 
-        case `hr`:
-        case `race`:
-        case `horserace`:
+        case 'hr':
+        case 'race':
+        case 'horserace':
             {
                 if (args.length > 0) {
                     let horse = find_horse(guild.horses, args.join());
