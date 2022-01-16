@@ -18,6 +18,7 @@ export class bot_cfg {
     horseRaceBetTimeoutDuration: number;
     horseRaceCommissionRate: number;
     maxHorseNameLength: number;
+    maxHorseRacesToRename: number;
     constructor() {
         this.dailyBonus = 1000000;
         this.dailyCollectionInterval = dayInMili;
@@ -36,6 +37,7 @@ export class bot_cfg {
         this.horseRaceBetTimeoutDuration = 5 * minInMili;
         this.horseRaceCommissionRate = 0.05;
         this.maxHorseNameLength = 64;
+        this.maxHorseRacesToRename = 3;
         this.cockBasePrice = 5000000;
     }
 }

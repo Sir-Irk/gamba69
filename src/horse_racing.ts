@@ -184,8 +184,8 @@ export async function start_horse_renaming(user: user_account, horses: race_hors
         return;
     }
 
-    if (horse.races > 0) {
-        await msg.reply('You can only rename a horse if they have never raced');
+    if (horse.races > cfg.maxHorseRacesToRename) {
+        await msg.reply(`You can only rename a horse if they have been in ${cfg.maxHorseRacesToRename} or fewer races`);
         return;
     }
 
