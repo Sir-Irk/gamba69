@@ -120,6 +120,7 @@ export class user_guild {
     horseGraveyard: race_horse[];
     horseOwners: user_account[];
     horsesInRace: race_horse[];
+    horsesInQueue: race_horse[];
 
     horseBeingSold: boolean;
 
@@ -136,5 +137,6 @@ export class user_guild {
         this.horses = [];
         this.horseGraveyard = [];
         this.horsesInRace = [];
+        this.horsesInQueue = [];
     }
 }

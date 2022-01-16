@@ -19,7 +19,7 @@ import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
+export const DEBUG_MODE = true;
 export const DEBUG_TIMING = false;
 
 import {
@@ -102,12 +102,14 @@ function backup_user_data() {
     fs.writeFileSync(path, file);
 }
 
+/*
 process.on('uncaughtException', function (err) {
     backup_user_data();
     log_error(err.toString());
     console.log('Caught exception: ' + err);
-    process.abort();
+    //process.abort();
 });
+*/
 
 async function hourlyBackUp() {
     while (true) {

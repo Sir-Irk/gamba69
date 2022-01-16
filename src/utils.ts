@@ -290,6 +290,7 @@ export function write_user_data_json(user: user_account) {
     }
 
     json[guild].horses = guildObj.horses;
+    //json[guild].horsesInQueue = guildObj.horsesInQueue;
     json[guild].horseGraveyard = guildObj.horseGraveyard;
     json[guild].houseBones = guildObj.houseBones;
 

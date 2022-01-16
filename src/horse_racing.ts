@@ -215,7 +215,8 @@ export async function sell_horse(user: user_account, horse: race_horse, msg: Dis
 
     let guild = user.guildObj;
 
-    user.guildObj.horses = user.guildObj.horses.filter((h) => h.name !== horse.name);
+    guild.horses = guild.horses.filter((h) => h.name !== horse.name);
+    guild.horsesInQueue = guild.horsesInQueue.filter((h) => h.name !== horse.name);
 
     update_horse_handles(user.guildObj);
 
@@ -279,6 +280,7 @@ export async function purchase_horse(user: user_account, horseName: string, msg:
         }
     }
     horses.push(horse);
+    user.guildObj.horsesInQueue.push(horse);
     update_horse_handles(user.guildObj);
     msg.reply(`Congrats! You bought your new horse ${horseName}! It walks out of the stable and approaches you...`);
     write_user_data_json(user);
@@ -580,9 +582,22 @@ export async function display_placed_bets(pool: bet_pool, msg: Discord.Message) 
     await msg.channel.send({ embeds: [embed] });
 }
 
+function pop_horse(horsesInQueue: race_horse[], horses: race_horse[]): race_horse {
+    if (horsesInQueue.length === 0) {
+        for (let i = 0; i < horses.length; ++i) {
+            horsesInQueue.push(horses[i]);
+        }
+        shuffle(horsesInQueue);
+    }
+
+    return horsesInQueue.pop();
+}
+
 export async function start_horse_race_bet_taking(user: user_account, horse: race_horse, msg: Discord.Message) {
-    if (user.guildObj.horseRaceIsActive || user_is_playing_game(user, msg)) return;
-    if (user.guildObj.horseRaceIsTakingBets) {
+    const guild = user.guildObj;
+
+    if (guild.horseRaceIsActive || user_is_playing_game(user, msg)) return;
+    if (guild.horseRaceIsTakingBets) {
         await msg.reply(`Bets are already being taken. Use **?bet** <horse number> <bet> to place your bet`);
         return;
     }
@@ -591,27 +606,33 @@ export async function start_horse_race_bet_taking(user: user_account, horse: rac
             `Use **?cancel** to cancel betting`
     );
 
-    user.guildObj.horseRaceIsTakingBets = true;
-    user.guildObj.userRunningHorseBet = user;
+    guild.horseRaceIsTakingBets = true;
+    guild.userRunningHorseBet = user;
 
-    user.guildObj.horseRaceBetStartTime = Date.now();
-    user.guildObj.horseRaceBetTimeoutCoroutine = horse_race_bet_timeout(user.guildObj, cfg.horseRaceBetTimeoutDuration, msg);
-    user.guildObj.horseRaceBetTimeoutCoroutine.next();
+    guild.horseRaceBetStartTime = Date.now();
+    guild.horseRaceBetTimeoutCoroutine = horse_race_bet_timeout(guild, cfg.horseRaceBetTimeoutDuration, msg);
+    guild.horseRaceBetTimeoutCoroutine.next();
 
-    let horseList = [...user.guildObj.horses.filter((h) => !horse || horse.name !== h.name)];
-    shuffle(horseList);
-    user.guildObj.horsesInRace = [];
+    let horseSet = new Set<race_horse>();
+    if (horse) horseSet.add(horse);
+    while (horseSet.size < cfg.numHorsesPerRace && horseSet.size < guild.horses.length) {
+        const handle = pop_horse(guild.horsesInQueue, guild.horses);
+        horseSet.add(handle);
+    }
+
+    guild.horsesInRace = [];
     let startIdx = 0;
     if (horse) {
-        user.guildObj.horsesInRace.push(horse);
+        guild.horsesInRace.push(horse);
         startIdx = 1;
     }
-    for (let i = startIdx; i < 6; ++i) {
-        user.guildObj.horsesInRace.push(horseList[i]);
-    }
 
-    await list_horses(user, msg, true, user.guildObj.horsesInRace);
-    user.guildObj.horseRaceBetPool.entries = [];
+    horseSet.forEach((h) => {
+        guild.horsesInRace.push(h);
+    });
+
+    await list_horses(user, msg, true, guild.horsesInRace);
+    guild.horseRaceBetPool.entries = [];
 }
 
 export async function start_horse_race(user: user_account, msg: Discord.Message) {
@@ -673,7 +694,10 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     let placements: Array<race_horse> = [];
     while (placements.length < horses.length) {
         for (let h = 0; h < horses.length; ++h) {
-            let speed = 1 + Math.round(Math.random() * 5 * horses[h].speed);
+            const minAge = 15;
+            let ageClamp = Math.max(horses[h].age - minAge, 0) / (50 - minAge);
+            let ageMod = Math.max(1 - ageClamp, 0.75);
+            let speed = 1 + Math.round(Math.random() * 5 * horses[h].speed * ageMod);
             horses[h].trackPos = Math.max(0, horses[h].trackPos - speed);
             horses[h].speedAverage.add(speed);
 
@@ -712,6 +736,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
         let horse = placements[i];
         horse.placementAverage.add(i + 1);
         horse.races++;
+        horse.age += cfg.horseAgeProgressionPerRace;
         const pot = pool.get_horse_bets(placements[i]).toLocaleString('en-US');
         if (i == 0) {
             placeStr = `:first_place:`;
