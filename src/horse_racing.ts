@@ -641,7 +641,6 @@ export async function start_horse_race_bet_taking(user: user_account, horse: rac
     if (horse) horseSet.add(horse);
     while (horseSet.size < cfg.numHorsesPerRace && horseSet.size < guild.horses.length) {
         const handle = pop_horse(guild.horsesInQueue, guild.horses);
-        console.log(guild.horsesInQueue.length);
         horseSet.add(handle);
     }
 
