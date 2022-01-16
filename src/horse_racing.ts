@@ -621,11 +621,6 @@ export async function start_horse_race_bet_taking(user: user_account, horse: rac
     }
 
     guild.horsesInRace = [];
-    let startIdx = 0;
-    if (horse) {
-        guild.horsesInRace.push(horse);
-        startIdx = 1;
-    }
 
     horseSet.forEach((h) => {
         guild.horsesInRace.push(h);
