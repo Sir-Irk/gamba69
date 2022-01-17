@@ -76,7 +76,7 @@ export async function roulette_game(user: user_account, bet: number, msg: Discor
             msgRef.content +
                 `\n${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
         );
-        await delay(500);
+        await delay(1000);
         const nextBet = user.rl.bet * 2;
         const nextBetStr = (user.rl.baseBet + nextBet).toLocaleString('en-US');
         await msgRef.edit(
@@ -143,6 +143,7 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
             msgRef.content +
                 `\n${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
         );
+        await delay(1000);
         await msgRef.edit(
             msgRef.content +
                 `\n${EMOJIS.interestedSharkEmoji} ${user.nickname}, Type **continue** to try for **${nextBetStr}** ${boneSymbol} or **end** to stop now`
