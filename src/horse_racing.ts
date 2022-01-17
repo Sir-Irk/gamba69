@@ -532,7 +532,7 @@ async function* horse_race_bet_timeout(guild: user_guild, duration: number, msg:
 }
 
 export async function process_horse_race_bet(user: user_account, horseNum: number, bet: number, msg: Discord.Message): Promise<void> {
-    if (user.guildObj.horseRaceIsActive || (user.state !== user_state.none && user.state !== user_state.horseRacing)) return;
+    if (user.guildObj.horseRaceIsActive || (user.state !== user_state.none && user.state !== user_state.horseRaceBetting)) return;
     if (!user.guildObj.horseRaceIsTakingBets) {
         msg.reply(`There is no horse race betting going on right now. You can use ?open to start betting.`);
         return;
