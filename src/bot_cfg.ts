@@ -34,7 +34,7 @@ export class bot_cfg {
         this.globalSlotPointsModifier = 1.0;
         this.bjMessageDelay = 1000;
         this.slotsMessageDelay = 1500;
-        this.horseBasePrice = 1000000;
+        this.horseBasePrice = 0;
         this.maxHorsesPerUser = 3;
         this.maxHorseBets = 2;
         this.horseRaceBetTimeoutDuration = 5 * minInMili;

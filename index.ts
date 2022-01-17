@@ -120,9 +120,10 @@ async function hourlyBackUp() {
 }
 
 async function initialize() {
-    await load_users().catch((e) => {
-        console.log('failed to load users');
-    });
+    await load_users();
+    //await load_users().catch((e) => {
+    //     console.log('failed to load users');
+    //});
     console.log('finished loading users');
     load_nicknames(userGuilds);
     hourlyBackUp();
