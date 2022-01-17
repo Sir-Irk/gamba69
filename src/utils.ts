@@ -483,13 +483,15 @@ export async function display_guild_stats(guild: user_guild, msg: Discord.Messag
     stats.push(new game_stat_display(`:horse_racing:  Racing  :horse_racing:`));
 
     guild.users.forEach((e: user_account) => {
-        e.gameStats.forEach((s: game_stats) => {
-            totalGamesPlayed += s.played;
-            winSum += s.wins;
-            stats[s.type].played += s.played;
-            stats[s.type].wins += s.wins;
-            stats[s.type].moneySum += s.moneyWon;
-        });
+        if (e.gameStats) {
+            e.gameStats.forEach((s: game_stats) => {
+                totalGamesPlayed += s.played;
+                winSum += s.wins;
+                stats[s.type].played += s.played;
+                stats[s.type].wins += s.wins;
+                stats[s.type].moneySum += s.moneyWon;
+            });
+        }
     });
 
     let totalWinPercent = totalGamesPlayed > 0 ? Math.round((winSum / totalGamesPlayed) * 100) : 0;
