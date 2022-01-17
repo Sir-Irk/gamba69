@@ -44,7 +44,7 @@ export class bot_cfg {
         this.cockBasePrice = 5000000;
         this.numHorsesPerRace = 6;
         this.horseAgeProgressionPerRace = 0.25;
-        this.horseRetirementAge = 27;
+        this.horseRetirementAge = 23;
     }
 }
 
