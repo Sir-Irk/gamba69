@@ -24,6 +24,8 @@ export class roulette_game_data {
 
 export async function roulette_game(user: user_account, bet: number, msg: Discord.Message) {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
+
+    let msgRef = null;
     if (user.rl.counter > 0 || user.rl.isPullingTheTrigger) {
         await msg.channel.send(`${user.nickname}, You are already playing roulette`);
         return;
@@ -40,11 +42,11 @@ export async function roulette_game(user: user_account, bet: number, msg: Discor
     const betStr = bet.toLocaleString('en-US');
 
     if (bet == user.bones) {
-        await msg.channel.send(
+        msgRef = await msg.channel.send(
             `${EMOJIS.interestedSharkEmoji} :grimacing: :gun: ${user.nickname} puts their massive balls on the line for **all** of their **${betStr}** ${boneSymbol}...`
         );
     } else {
-        await msg.channel.send(
+        msgRef = await msg.channel.send(
             `${EMOJIS.interestedSharkEmoji} :grimacing: :gun: ${user.nickname} puts their life on the line for **${betStr}** ${boneSymbol}...`
         );
     }
@@ -52,7 +54,9 @@ export async function roulette_game(user: user_account, bet: number, msg: Discor
     await delay(3000);
 
     if (user.rl.counter == user.rl.roll) {
-        await msg.channel.send(`${EMOJIS.interestedSharkEmoji} :skull_crossbones: You died! You lose **${betStr}** ${boneSymbol}`);
+        await msgRef.edit(
+            msgRef.content + `\n${EMOJIS.interestedSharkEmoji} :skull_crossbones: You died! You lose **${betStr}** ${boneSymbol}`
+        );
         await msg.channel.send(`${GIFS.youDiedGif}`);
         const prize = -bet;
         user.add_money(prize);
@@ -68,14 +72,16 @@ export async function roulette_game(user: user_account, bet: number, msg: Discor
         user.update_stats(true, prize, game_category.roulette);
         user.rl.timeOfLastResponse = Date.now();
         const prizeStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
-        await msg.channel.send(
-            `${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
+        await msgRef.edit(
+            msgRef.content +
+                `\n${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
         );
         await delay(500);
         const nextBet = user.rl.bet * 2;
         const nextBetStr = (user.rl.baseBet + nextBet).toLocaleString('en-US');
-        await msg.channel.send(
-            `${EMOJIS.interestedSharkEmoji} ${user.nickname}, Type **continue** to try for **${nextBetStr}** ${boneSymbol} or **end** to stop now`
+        await msgRef.edit(
+            msgRef.content +
+                `\n${EMOJIS.interestedSharkEmoji} ${user.nickname}, Type **continue** to try for **${nextBetStr}** ${boneSymbol} or **end** to stop now`
         );
     }
 
@@ -99,7 +105,7 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
     const bet = user.rl.bet;
     const betStr = (user.rl.baseBet + bet).toLocaleString('en-US');
     user.rl.isPullingTheTrigger = true;
-    await msg.channel.send(
+    let msgRef = await msg.channel.send(
         `${EMOJIS.doubtfulSharkEmoji} :grimacing: :gun: ${user.nickname} lets it ride and puts their life on the line for **${betStr}** ${boneSymbol}`
     );
 
@@ -113,14 +119,18 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
         user.rl.counter = 0;
         user.state = user_state.none;
         const lossStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
-        await msg.channel.send(`${EMOJIS.interestedSharkEmoji} :skull_crossbones: You died! You lose **${lossStr}** ${boneSymbol}`);
+        await msgRef.edit(
+            msgRef.content + `\n${EMOJIS.interestedSharkEmoji} :skull_crossbones: You died! You lose **${lossStr}** ${boneSymbol}`
+        );
         await msg.channel.send(`${GIFS.youDiedGif}`);
     } else if (user.rl.counter == 5) {
         user.rl.bet += user.rl.bet;
         prize = user.rl.bet;
         user.rl.counter = 0;
         const prizeStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
-        await msg.channel.send(`${EMOJIS.imBigEmoji} ${user.nickname}, You won all rounds! You won **${prizeStr}** ${boneSymbol}`);
+        await msgRef.edit(
+            msgRef.content + `\n${EMOJIS.imBigEmoji} ${user.nickname}, You won all rounds! You won **${prizeStr}** ${boneSymbol}`
+        );
         await msg.channel.send(`${GIFS.rouletteWinGif}`);
         user.state = user_state.none;
     } else {
@@ -129,11 +139,13 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
         user.rl.counter++;
         const prizeStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
         const nextBetStr = (user.rl.baseBet + user.rl.bet * 2).toLocaleString('en-US');
-        await msg.channel.send(
-            `${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
+        await msgRef.edit(
+            msgRef.content +
+                `\n${EMOJIS.whySharkEmoji} :relieved: ${user.nickname}, You live! for now... You won back **${prizeStr}** ${boneSymbol}`
         );
-        await msg.channel.send(
-            `${EMOJIS.interestedSharkEmoji} ${user.nickname}, Type **continue** to try for **${nextBetStr}** ${boneSymbol} or **end** to stop now`
+        await msgRef.edit(
+            msgRef.content +
+                `\n${EMOJIS.interestedSharkEmoji} ${user.nickname}, Type **continue** to try for **${nextBetStr}** ${boneSymbol} or **end** to stop now`
         );
     }
     user.add_money(prize);
