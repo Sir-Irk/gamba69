@@ -635,6 +635,7 @@ export async function start_horse_race_bet_taking(user: user_account, horse: rac
 
     guild.horseRaceIsTakingBets = true;
     guild.userRunningHorseBet = user;
+    user.state = user_state.horseRaceBetting;
 
     guild.horseRaceBetStartTime = Date.now();
     guild.horseRaceBetTimeoutCoroutine = horse_race_bet_timeout(guild, cfg.horseRaceBetTimeoutDuration, msg);
