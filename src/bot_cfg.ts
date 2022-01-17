@@ -23,18 +23,18 @@ export class bot_cfg {
     numHorsesPerRace: number;
     horseRetirementAge: number;
     constructor() {
-        this.dailyBonus = 1000000;
+        this.dailyBonus = 5000;
         this.dailyCollectionInterval = dayInMili;
         this.rouletteContinueTimeout = minInMili * 0.5;
         this.workDuration = hourInMili;
-        this.workSalaryMin = 500000;
-        this.workSalaryMax = 1000000;
+        this.workSalaryMin = 5000;
+        this.workSalaryMax = 10000;
         this.charityCollectionInterval = 5 * minInMili;
-        this.charityAmountInBones = 6969;
+        this.charityAmountInBones = 69;
         this.globalSlotPointsModifier = 1.0;
         this.bjMessageDelay = 1000;
         this.slotsMessageDelay = 1500;
-        this.horseBasePrice = 100000000;
+        this.horseBasePrice = 1000000;
         this.maxHorsesPerUser = 3;
         this.maxHorseBets = 2;
         this.horseRaceBetTimeoutDuration = 5 * minInMili;
