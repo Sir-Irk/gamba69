@@ -718,8 +718,8 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     while (placements.length < horses.length) {
         for (let h = 0; h < horses.length; ++h) {
             const minAge = 15;
-            let ageClamp = Math.max(horses[h].age - minAge, 0) / (50 - minAge);
-            let ageMod = Math.max(1 - ageClamp, 0.75);
+            let ageClamp = Math.max(horses[h].age - minAge, 0) / (30 - minAge);
+            let ageMod = Math.max(1 - ageClamp, 0.9);
             let speed = 1 + Math.round(Math.random() * 5 * horses[h].speed * ageMod);
             horses[h].trackPos = Math.max(0, horses[h].trackPos - speed);
             horses[h].speedAverage.add(speed);
