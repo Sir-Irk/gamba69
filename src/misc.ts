@@ -7,8 +7,6 @@ import { user_is_playing_game } from './utils';
 import * as Discord from 'discord.js';
 
 export async function start_working(user: user_account, msg: Discord.Message<boolean>) {
-    if (user_is_playing_game(user, msg)) return;
-
     const timeSpent = Date.now() - user.workStartTime;
     if (user.workPaycheck > 0 && timeSpent < cfg.workDuration) {
         const timeLeft = cfg.workDuration - timeSpent;

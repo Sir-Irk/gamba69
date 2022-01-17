@@ -361,6 +361,7 @@ client.on('messageCreate', async (msg) => {
                 msg.reply(`**usage:** ${prefix}give <user> <amount>`);
                 break;
             }
+            if (user_is_playing_game(user, msg)) return;
             let bonesToGive = parse_bet(user, args[1], msg);
             if (bonesToGive <= 0) return;
 
@@ -386,6 +387,7 @@ client.on('messageCreate', async (msg) => {
                     msg.reply(`Usage: ?rain <amount> <number of users>\n If you leave number of users blank it will give to all users`);
                     return;
                 }
+                if (user_is_playing_game(user, msg)) return;
 
                 let bet = parse_bet(user, args[0], msg);
                 if (bet <= 0) return;

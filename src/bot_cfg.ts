@@ -21,6 +21,7 @@ export class bot_cfg {
     maxHorseNameLength: number;
     maxHorseRacesToRename: number;
     numHorsesPerRace: number;
+    horseRetirementAge: number;
     constructor() {
         this.dailyBonus = 1000000;
         this.dailyCollectionInterval = dayInMili;
@@ -43,6 +44,7 @@ export class bot_cfg {
         this.cockBasePrice = 5000000;
         this.numHorsesPerRace = 6;
         this.horseAgeProgressionPerRace = 0.25;
+        this.horseRetirementAge = 27;
     }
 }
 

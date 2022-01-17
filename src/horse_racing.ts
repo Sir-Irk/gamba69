@@ -216,18 +216,7 @@ export async function start_horse_renaming(user: user_account, horses: race_hors
     await msg.reply(`Enter a new name for ${horse.name}:`);
 }
 
-export async function sell_horse(user: user_account, horse: race_horse, msg: Discord.Message) {
-    while (user.guildObj.horseBeingSold) {}
-    user.guildObj.horseBeingSold = true;
-
-    const sellPrice = Math.round(cfg.horseBasePrice * 0.5);
-    user.add_money(sellPrice);
-    if (horse.races > 0) {
-        user.guildObj.horseGraveyard.push(horse);
-    }
-    user.numHorsesOwned--;
-    msg.reply(`You have sold ${horse.name} to the glue factory for **${sellPrice.toLocaleString('en-US')}** ${boneSymbol}`);
-
+function retire_horse_to_graveyard(user: user_account, horse: race_horse): void {
     let today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -238,11 +227,25 @@ export async function sell_horse(user: user_account, horse: race_horse, msg: Dis
 
     guild.horses = guild.horses.filter((h) => h.name !== horse.name);
     guild.horsesInQueue = guild.horsesInQueue.filter((h) => h.name !== horse.name);
-
+    user.numHorsesOwned--;
     update_horse_handles(user.guildObj);
+    write_user_data_json(user);
+}
+
+export async function sell_horse(user: user_account, horse: race_horse, msg: Discord.Message) {
+    while (user.guildObj.horseBeingSold) {}
+    user.guildObj.horseBeingSold = true;
+
+    const sellPrice = Math.round(cfg.horseBasePrice * 0.5);
+    user.add_money(sellPrice);
+    if (horse.races > 0) {
+        user.guildObj.horseGraveyard.push(horse);
+    }
+    msg.reply(`You have sold ${horse.name} to the glue factory for **${sellPrice.toLocaleString('en-US')}** ${boneSymbol}`);
+
+    retire_horse_to_graveyard(user, horse);
 
     user.state = user_state.none;
-    write_user_data_json(user);
     user.guildObj.horseBeingSold = false;
 }
 
@@ -748,6 +751,7 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
 
     const prizePortions = [0.6, 0.3, 0.1];
 
+    let oldHorses = [];
     let commissions = [];
 
     let placeStr = '';
@@ -798,6 +802,10 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
                 commissions.push({ owner: 'Kevin', horse: horse.name, money: commission });
             }
         }
+
+        if (horse.age > cfg.horseRetirementAge) {
+            oldHorses.push(horse);
+        }
     }
 
     let winSums = [0, 0, 0];
@@ -825,7 +833,6 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
             w.user.add_money(prize);
             w.user.update_stats(true, prize, game_category.horseRacing);
 
-            write_user_data_json(w.user);
             str += `${boneSymbol} ${prize.toLocaleString('en-US')} goes to ${w.user.name}\n`;
         });
         if (winners[i].length > 0) {
@@ -836,7 +843,6 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
     losers.forEach((l: bet_pool_entry) => {
         l.user.add_money(-l.bet);
         l.user.update_stats(false, -l.bet, game_category.horseRacing);
-        write_user_data_json(l.user);
     });
 
     user.guildObj.userRunningHorseBet = null;
@@ -848,6 +854,32 @@ export async function run_horse_race(user: user_account, msgRef: Discord.Message
         }
         await msgRef.channel.send({ embeds: [commissionEmbed] });
     }
+
+    if (oldHorses.length > 0) {
+        let retirementEmbed = new Discord.MessageEmbed().setTitle('Horses Retiring').setColor('#2222BB');
+        let anyHorsesRetired = false;
+        oldHorses.forEach((h) => {
+            if (Math.random() < 0.5) {
+                retire_horse_to_graveyard(user, h);
+                oldHorses.forEach((h) => {
+                    retirementEmbed.addFields({ name: `${h.name}`, value: `Age: ${h.age}`, inline: false });
+                });
+                anyHorsesRetired = true;
+            }
+        });
+        if (anyHorsesRetired) {
+            await msgRef.channel.send({ embeds: [retirementEmbed] });
+        }
+    }
+
+    winners.forEach((win) => {
+        win.forEach((w) => {
+            write_user_data_json(w.user);
+        });
+    });
+    losers.forEach((l) => {
+        write_user_data_json(l.user);
+    });
 
     await msgRef.channel.send({ embeds: [embed] });
 }
