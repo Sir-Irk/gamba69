@@ -102,14 +102,12 @@ function backup_user_data() {
     fs.writeFileSync(path, file);
 }
 
-/*
 process.on('uncaughtException', function (err) {
     backup_user_data();
     log_error(err.toString());
     console.log('Caught exception: ' + err);
     //process.abort();
 });
-*/
 
 async function hourlyBackUp() {
     while (true) {
