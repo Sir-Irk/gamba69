@@ -680,6 +680,10 @@ client.on('messageCreate', async (msg) => {
                 await msg.reply(`Horse betting has been cancelled`);
                 user.guildObj.horseRaceIsTakingBets = false;
                 user.guildObj.userRunningHorseBet = null;
+                user.guildObj.horseRaceBetPool.entries.forEach((b) => {
+                    b.user.state = user_state.none;
+                });
+                user.state = user_state.none;
             }
             break;
 
