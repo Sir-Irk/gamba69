@@ -225,6 +225,9 @@ function retire_horse_to_graveyard(user: user_account, horse: race_horse): void 
 
     let guild = user.guildObj;
 
+    if (horse.races > 0) {
+        guild.horseGraveyard.push(horse);
+    }
     guild.horses = guild.horses.filter((h) => h.name !== horse.name);
     guild.horsesInQueue = guild.horsesInQueue.filter((h) => h.name !== horse.name);
     user.numHorsesOwned--;
@@ -238,9 +241,6 @@ export async function sell_horse(user: user_account, horse: race_horse, msg: Dis
 
     const sellPrice = Math.round(cfg.horseBasePrice * 0.5);
     user.add_money(sellPrice);
-    if (horse.races > 0) {
-        user.guildObj.horseGraveyard.push(horse);
-    }
     msg.reply(`You have sold ${horse.name} to the glue factory for **${sellPrice.toLocaleString('en-US')}** ${boneSymbol}`);
 
     retire_horse_to_graveyard(user, horse);
