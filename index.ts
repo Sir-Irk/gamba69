@@ -106,7 +106,7 @@ process.on('uncaughtException', function (err) {
     backup_user_data();
     log_error(err.toString());
     console.log('Caught exception: ' + err);
-    //process.abort();
+    process.abort();
 });
 
 async function hourlyBackUp() {

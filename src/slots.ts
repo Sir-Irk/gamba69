@@ -191,12 +191,12 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
     let won = true;
     if (points > 0) {
         prize = Math.round(points * bet);
-        msg.reply(
+        await msg.reply(
             `${slotsEmoji} ${user.nickname}, EZ! You won **${prize.toLocaleString('en-US')}** ${boneSymbol}\n${slotSet[messageIdx]} ${
                 messages[messageIdx]
             }`
         );
-        msg.channel.send(`${GIFS.winSlotsGif}`);
+        await msg.channel.send(`${GIFS.winSlotsGif}`);
     } else {
         const lossStr = (bet - betBonus).toLocaleString('en-US');
         const bonusStr = betBonus.toLocaleString('en-US');
@@ -205,15 +205,15 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
             won = false;
             const slotStr = `${slotSymbols[slotSetRoll][combos[0][0]]}`;
             const betStr = bet.toLocaleString('en-US');
-            msg.reply(
+            await msg.reply(
                 `${slotsEmoji} ${user.nickname}, You Lost **${betStr}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${slotStr} **combo**`
             );
         } else {
             prize = -bet;
             won = false;
-            msg.reply(`${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`);
+            await msg.reply(`${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`);
         }
-        msg.channel.send(`${GIFS.loseSlotsGif}`);
+        await msg.channel.send(`${GIFS.loseSlotsGif}`);
     }
 
     user.add_money(prize);
