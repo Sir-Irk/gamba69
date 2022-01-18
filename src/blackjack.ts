@@ -421,6 +421,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
             await msg.reply(`${user.nickname}, Your hand beats mine. You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`);
             msg.channel.send(`${GIFS.toCashFlowGif}`);
         } else if (userSum == houseSum) {
+            won = false;
             await msg.reply(`${user.nickname}, It's a draw. You get your bet back ${EMOJIS.cringeEmoji}`);
         } else {
             prize = -user.bj.bet;
@@ -430,7 +431,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
         }
         blackjack_game_end(user);
         user.add_money(prize);
-        user.update_stats(true, prize, game_category.blackjack);
+        user.update_stats(won, prize, game_category.blackjack);
     }
     user.bj.isDealingHand = false;
     user.state = user_state.none;
