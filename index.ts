@@ -533,7 +533,7 @@ client.on('messageCreate', async (msg) => {
                 const horse = find_horse(guild.horses, args.join());
 
                 if (horse) {
-                    if (horse.owner === user.name) {
+                    if (horse.ownerId === user.id) {
                         await confirm_horse_sale(user, horse, msg);
                     } else {
                         await msg.reply(`Cannot sell. You do not own this horse.`);
