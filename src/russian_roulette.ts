@@ -117,12 +117,12 @@ export async function roulette_game_continue(user: user_account, msg: Discord.Me
         prize = -(user.rl.baseBet + user.rl.bet);
         won = false;
         user.rl.counter = 0;
-        user.state = user_state.none;
         const lossStr = (user.rl.baseBet + user.rl.bet).toLocaleString('en-US');
         await msgRef.edit(
             msgRef.content + `\n${EMOJIS.interestedSharkEmoji} :skull_crossbones: You died! You lose **${lossStr}** ${boneSymbol}`
         );
         await msg.channel.send(`${GIFS.youDiedGif}`);
+        user.state = user_state.none;
     } else if (user.rl.counter == 5) {
         user.rl.bet += user.rl.bet;
         prize = user.rl.bet;

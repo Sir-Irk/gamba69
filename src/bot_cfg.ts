@@ -43,7 +43,7 @@ export class bot_cfg {
         this.maxHorseRacesToRename = 3;
         this.cockBasePrice = 5000000;
         this.numHorsesPerRace = 6;
-        this.horseAgeProgressionPerRace = 0.25;
+        this.horseAgeProgressionPerRace = 0.1;
         this.horseRetirementAge = 23;
     }
 }
