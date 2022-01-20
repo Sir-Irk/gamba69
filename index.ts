@@ -900,7 +900,6 @@ client.on('messageCreate', async (msg) => {
 
                 let profitSum = 0;
                 let investmentSum = 0;
-                let balance = 0;
                 const blk = '```';
 
                 user.stocks.forEach((s: stock_position) => {
@@ -922,12 +921,12 @@ client.on('messageCreate', async (msg) => {
 
                     profitSum += profit;
                     investmentSum += s.get_investment();
-                    balance += s.position_size();
                 });
 
                 const profitPercent = (profitSum / investmentSum) * 100;
                 const profitPercentStr = profitPercent.toLocaleString('en-US');
                 const profitStr = profitSum.toLocaleString('en-US');
+                const balance = investmentSum + profitSum;
                 let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
                 str += blk;
                 str += `Investment : ${boneSymbol} ${investmentSum.toLocaleString('en-US')}\n`;
