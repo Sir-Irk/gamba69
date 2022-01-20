@@ -278,7 +278,7 @@ export async function print_richest_list(users: user_account[], msg: Discord.Mes
 
         scores.push(
             //`${blk}fix\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n${blk}`
-            `$\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n$`
+            `\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n`
         );
     }
     const embed = new Discord.MessageEmbed().setTitle(`${boneSymbol} Top 10 Richest ${boneSymbol}`).setColor('#00AAFF');
