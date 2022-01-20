@@ -82,7 +82,7 @@ export async function invest_in_stock(user: user_account, args: string[], short:
     if (user_is_playing_game(user, msg)) return;
     if (args.length < 2) {
         await msg.reply(
-            `Usage: ${prefix}short/long <ticker symbol> <amount of bones>\nExample: ${prefix}invest amc 5000\nUse -USD at the end of crypto tickers. For example BTC-USD`
+            `Usage: ${prefix}long/short <ticker symbol> <amount of bones>\nExample: ${prefix}long amc 5000\nUse -USD at the end of crypto tickers. For example BTC-USD`
         );
         return;
     }
