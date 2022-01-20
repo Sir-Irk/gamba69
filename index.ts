@@ -865,7 +865,11 @@ client.on('messageCreate', async (msg) => {
                             user.add_money(money);
                             user.stocks.splice(idx, 1);
                         } else {
-                            money = Math.floor(position.position_size() / numberOfShares);
+                            if (position.short) {
+                                money = Math.floor(numberOfShares * (position.pricePerShare - position.get_price_difference()));
+                            } else {
+                                money = Math.floor(numberOfShares * position.pricePerShare);
+                            }
                             user.add_money(money);
                             position.numShares -= numberOfShares;
                         }
