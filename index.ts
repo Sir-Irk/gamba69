@@ -947,10 +947,10 @@ client.on('messageCreate', async (msg) => {
                 const profitStr = profitSum.toLocaleString('en-US');
                 let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
                 str += blk;
-                str += `Balance: ${boneSymbol} ${balance.toLocaleString('en-US')}\n`;
+                str += `Investment : ${boneSymbol} ${investmentSum.toLocaleString('en-US')}\n`;
+                str += `Balance    : ${boneSymbol} ${balance.toLocaleString('en-US')}\n`;
                 str += blk;
                 embed.addFields({ name: `Account Total`, value: str, inline: false });
-
                 await msg.reply({ embeds: [embed] });
             }
             break;
