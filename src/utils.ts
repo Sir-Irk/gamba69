@@ -387,10 +387,12 @@ export async function load_users(): Promise<void> {
                 }
             }
 
-            const positions = u.stockPositions as stock_position[];
-            positions.forEach((p) => {
-                user.stocks.push(new stock_position(p.ticker, p.averageCostPerShare, p.pricePerShare, p.numShares));
-            });
+            if (u.stockPositions) {
+                const positions = u.stockPositions as stock_position[];
+                positions.forEach((p) => {
+                    user.stocks.push(new stock_position(p.ticker, p.averageCostPerShare, p.pricePerShare, p.numShares));
+                });
+            }
 
             guild.users.push(user);
             console.log(`Loaded user: ${u.username} for guild ${json[guildKey].guild_name}`);

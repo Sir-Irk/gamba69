@@ -921,11 +921,15 @@ client.on('messageCreate', async (msg) => {
                     const profitPercentStr = s.get_profit_percentage().toLocaleString('en-US');
                     const profitStr = s.get_profit().toLocaleString('en-US');
                     const priceDiffStr = s.get_price_difference().toLocaleString('en-US');
-                    let str = `Profit: (${profitPercentStr}%) ${boneSymbol} ${profitStr}\n`;
-                    str += `Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}`;
+                    const blk = '```';
+                    let str = `${blk}diff\n${
+                        s.get_profit() >= 0 ? '+' : '-'
+                    }Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
+
+                    str += `${blk}Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}\n`;
                     str += `Shares: ${s.numShares.toLocaleString('en-US')}\n`;
                     str += `Avg Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
-                    str += `Price Diff: ${priceDiffStr}\n`;
+                    str += `Price Diff: ${priceDiffStr}\n${blk}`;
                     embed.addFields({ name: s.ticker, value: str, inline: true });
                 });
 
