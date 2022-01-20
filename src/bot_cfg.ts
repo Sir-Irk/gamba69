@@ -50,7 +50,7 @@ export class bot_cfg {
         this.horseRetirementAge = 23;
         this.slotsGifsEnabled = true;
         this.maxStockPositions = 3;
-        this.userStockUpdateInterval = 60000;
+        this.userStockUpdateInterval = minInMili * 5;
     }
 }
 
