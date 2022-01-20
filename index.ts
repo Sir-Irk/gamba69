@@ -920,13 +920,16 @@ client.on('messageCreate', async (msg) => {
                     const priceStr = s.averageCostPerShare.toLocaleString('en-US');
                     const profitSymbol = profit >= 0 ? '+' : '-';
                     const curPriceStr = s.pricePerShare.toLocaleString('en-US');
-                    let str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}% @ ${curPriceStr})\n`;
 
+                    let str = '';
                     if (fullDisplay) {
+                        str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}% @ ${curPriceStr})\n`;
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                         str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
                         str += `Price Diff : ${priceDiffStr}\n`;
                         str += `Cur Price  : ${curPriceStr}\n`;
+                    } else {
+                        str = `${blk}diff\n${profitSymbol}Profit : ${profitStr} (${profitPercentStr}%) @ ${curPriceStr}\n`;
                     }
                     str += blk;
                     //const emoji = profit >= 0 ? `:chart_with_upwards_trend:` : `:chart_with_downwards_trend:`;
