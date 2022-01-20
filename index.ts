@@ -913,23 +913,23 @@ client.on('messageCreate', async (msg) => {
                 user.stocks.forEach((s: stock_position) => {
                     const profit = s.get_profit();
                     const profitPercent = s.get_profit_percentage();
-                    const profitPercentStr = profitPercent.toLocaleString('en-US');
-                    const profitStr = profit.toLocaleString('en-US');
-                    const priceDiffStr = s.get_price_difference().toLocaleString('en-US');
+                    const profitPercentStr = profitPercent.toLocaleString();
+                    const profitStr = profit.toFixed(2).toLocaleString();
+                    const priceDiffStr = s.get_price_difference().toFixed(2).toLocaleString();
                     const type = s.short ? 'SHORT' : 'LONG';
-                    const priceStr = s.averageCostPerShare.toLocaleString('en-US');
+                    const priceStr = s.averageCostPerShare.toFixed(2).toLocaleString();
                     const profitSymbol = profit >= 0 ? '+' : '-';
-                    const curPriceStr = s.pricePerShare.toLocaleString('en-US');
+                    const curPriceStr = s.pricePerShare.toFixed(2).toLocaleString();
 
                     let str = '';
                     if (fullDisplay) {
                         str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}%)\n`;
-                        str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
-                        str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
+                        str += `Value      : ${s.position_size().toFixed(2).toLocaleString()}\n`;
+                        str += `Shares     : ${s.numShares.toFixed(2).toLocaleString()}\n`;
                         str += `Price Diff : ${priceDiffStr}\n`;
                         str += `Cur Price  : ${curPriceStr}\n`;
                     } else {
-                        str = `${blk}diff\n${profitSymbol}Profit : ${profitStr} (${profitPercentStr}%) @ ${curPriceStr}\n`;
+                        str = `${blk}diff\n${profitSymbol}Profit : ${boneSymbol}${profitStr} (${profitPercentStr}%) @ ${curPriceStr}\n`;
                     }
                     str += blk;
                     //const emoji = profit >= 0 ? `:chart_with_upwards_trend:` : `:chart_with_downwards_trend:`;
@@ -940,13 +940,13 @@ client.on('messageCreate', async (msg) => {
                 });
 
                 const profitPercent = (profitSum / investmentSum) * 100;
-                const profitPercentStr = profitPercent.toLocaleString('en-US');
-                const profitStr = profitSum.toLocaleString('en-US');
+                const profitPercentStr = profitPercent.toFixed(2).toLocaleString();
+                const profitStr = profitSum.toFixed(2).toLocaleString();
                 const balance = investmentSum + profitSum;
                 let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}`;
                 str += `Profit    : ${profitStr} (${profitPercentStr}%)\n`;
-                str += `Investment : ${investmentSum.toLocaleString('en-US')}\n`;
-                str += `Balance    : ${balance.toLocaleString('en-US')}\n`;
+                str += `Investment : ${Math.floor(investmentSum).toLocaleString()}\n`;
+                str += `Balance    : ${Math.floor(balance).toLocaleString()}\n`;
                 str += blk;
                 embed.addFields({ name: `Account Total`, value: str, inline: false });
                 await msg.reply({ embeds: [embed] });
