@@ -843,7 +843,7 @@ client.on('messageCreate', async (msg) => {
                             await msg.reply(
                                 `You just received ${shares.toLocaleString('en-US')} shares of ${ticker} @ ${data.c.toLocaleString(
                                     'en-US'
-                                )} per share for a total of ${amount} ${boneSymbol}`
+                                )} per share for a total of ${amount.toLocaleString('en-US')} ${boneSymbol}`
                             );
                             write_user_data_json(user);
                         } else {
@@ -918,12 +918,14 @@ client.on('messageCreate', async (msg) => {
                 );
 
                 user.stocks.forEach((s: stock_position) => {
-                    const profitPercentStr = s.get_profit_percentage().toLocaleString('en-US');
-                    const profitStr = s.get_profit().toLocaleString('en-US');
+                    const profitPercentStr = s.get_profit_percentage().toFixed(2);
+                    const profitStr = s.get_profit().toFixed(2);
+                    const priceDiffStr = s.get_price_difference().toFixed(2);
                     let str = `Profit: (${profitPercentStr}%) ${boneSymbol} ${profitStr}\n`;
-                    str += `Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}\n`;
-                    str += `Shares: ${s.numShares.toLocaleString('en-US')}\n`;
-                    str += `Avg Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
+                    str += `Value: ${boneSymbol} ${s.position_size().toFixed(2)}`;
+                    str += `Shares: ${s.numShares.toFixed(2)}\n`;
+                    str += `Avg Price: ${s.pricePerShare.toFixed(2)}\n`;
+                    str += `Price Diff: ${priceDiffStr}\n`;
                     embed.addFields({ name: s.ticker, value: str, inline: true });
                 });
 
