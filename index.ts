@@ -927,7 +927,7 @@ client.on('messageCreate', async (msg) => {
                     }Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
 
                     str += blk;
-                    str += `Value      : ${boneSymbol} ${s.position_size().toLocaleString('en-US')}\n`;
+                    str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                     str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
                     str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
                     str += `Avg Price  : ${s.averageCostPerShare.toLocaleString('en-US')}\n`;
