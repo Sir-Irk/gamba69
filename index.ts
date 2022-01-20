@@ -919,7 +919,7 @@ client.on('messageCreate', async (msg) => {
                     const type = s.short ? 'SHORT' : 'LONG';
                     const priceStr = s.averageCostPerShare.toLocaleString('en-US');
                     const profitSymbol = profit >= 0 ? '+' : '-';
-                    let str = `${blk}diff\n${profitSymbol}Profit    : ${profitSymbol}${profitStr} (${profitPercentStr}%)\n`;
+                    let str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}%)\n`;
 
                     if (fullDisplay) {
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
@@ -938,9 +938,10 @@ client.on('messageCreate', async (msg) => {
                 const profitPercentStr = profitPercent.toLocaleString('en-US');
                 const profitStr = profitSum.toLocaleString('en-US');
                 const balance = investmentSum + profitSum;
-                let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n`;
-                str += `Investment : ${boneSymbol} ${investmentSum.toLocaleString('en-US')}\n`;
-                str += `Balance    : ${boneSymbol} ${balance.toLocaleString('en-US')}\n`;
+                let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}`;
+                str += `Profit     : ${profitStr} (${profitPercentStr}%)\n`;
+                str += `Investment : ${investmentSum.toLocaleString('en-US')}\n`;
+                str += `Balance    : ${balance.toLocaleString('en-US')}\n`;
                 str += blk;
                 embed.addFields({ name: `Account Total`, value: str, inline: false });
                 await msg.reply({ embeds: [embed] });
