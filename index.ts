@@ -862,7 +862,7 @@ client.on('messageCreate', async (msg) => {
 
                         let money = 0;
                         if (approx_eq(position.numShares, numberOfShares)) {
-                            money = Math.floor(position.position_size());
+                            money = Math.floor(position.get_position_size());
                             user.add_money(money);
                             user.stocks.splice(idx, 1);
                         } else {
@@ -925,7 +925,7 @@ client.on('messageCreate', async (msg) => {
                     let str = '';
                     if (fullDisplay) {
                         str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}%)\n`;
-                        str += `Value      : ${money_str(s.position_size())}\n`;
+                        str += `Value      : ${money_str(s.get_position_size())}\n`;
                         str += `Shares     : ${money_str(s.numShares)}\n`;
                         str += `Price Diff : ${priceDiffStr}\n`;
                         str += `Cur Price  : ${curPriceStr}\n`;

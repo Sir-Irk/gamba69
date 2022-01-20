@@ -239,17 +239,16 @@ export async function give_user_bones(
 }
 
 export async function print_richest_list(users: user_account[], msg: Discord.Message): Promise<void> {
-    users.sort(function (usr0, usr1) {
-        const a = usr0.bones;
-        const b = usr1.bones;
-        return a < b ? 1 : a > b ? -1 : 0;
-    });
-    let leaderboard = '';
-
     let sum = 0;
     for (let i = 0; i < users.length; ++i) {
         sum += users[i].bones;
     }
+
+    users.sort(function (usr0: user_account, usr1: user_account) {
+        const a = usr0.bones + usr0.get_net_worth_in_stock();
+        const b = usr1.bones + usr1.get_net_worth_in_stock();
+        return a < b ? 1 : a > b ? -1 : 0;
+    });
 
     let names = [];
     let scores = [];
@@ -269,7 +268,17 @@ export async function print_richest_list(users: user_account[], msg: Discord.Mes
         if (sum > 0) {
             percentage = Math.round((usr.bones / sum) * 100);
         }
-        scores.push(`\n${boneSymbol} ${usr.bones.toLocaleString('en-US')} (${percentage.toLocaleString('en-US')}%)\n`);
+
+        const stockNetWorth = usr.get_net_worth_in_stock();
+        const netWorth = usr.bones + stockNetWorth;
+        const stockNetWorthPercentStr = (netWorth !== 0 ? (stockNetWorth / netWorth) * 100 : 0).toLocaleString();
+        const liquidNetWorthPercentStr = (netWorth !== 0 ? (usr.bones / netWorth) * 100 : 0).toLocaleString();
+        const netWorthStr = Math.floor(stockNetWorth).toLocaleString();
+        const blk = '```';
+
+        scores.push(
+            `${blk}fix\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n${blk}`
+        );
     }
     const embed = new Discord.MessageEmbed().setTitle(`${boneSymbol} Top 10 Richest ${boneSymbol}`).setColor('#00AAFF');
 

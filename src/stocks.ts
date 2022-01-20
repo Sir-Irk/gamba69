@@ -21,7 +21,7 @@ export class stock_position {
         this.numShares = numShares;
     }
 
-    public position_size() {
+    public get_position_size() {
         if (this.short) {
             return this.averageCostPerShare * this.numShares + this.get_profit();
         } else {
@@ -112,7 +112,7 @@ export async function invest_in_stock(user: user_account, args: string[], short:
             const position = new stock_position(ticker, short, data.c, data.c, shares);
             try {
                 user.add_stock_position(position);
-                user.add_money(Math.floor(-position.position_size()));
+                user.add_money(Math.floor(-position.get_position_size()));
                 await msg.reply(
                     `You went ${short ? 'short' : 'long'} on ${shares.toLocaleString(
                         'en-US'

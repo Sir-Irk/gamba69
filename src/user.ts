@@ -82,6 +82,14 @@ export class user_account {
         this.stocks = [];
     }
 
+    public get_net_worth_in_stock() {
+        let sum = 0;
+        for (let i = 0; i < this.stocks.length; ++i) {
+            sum += this.stocks[i].get_position_size();
+        }
+        return sum;
+    }
+
     public add_stock_position(pos: stock_position): void {
         for (let i = 0; i < this.stocks.length; ++i) {
             let s = this.stocks[i];
