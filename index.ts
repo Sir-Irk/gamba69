@@ -911,8 +911,9 @@ client.on('messageCreate', async (msg) => {
                     return;
                 }
 
+                const timeStr = Math.round(cfg.userStockUpdateInterval / minInMili);
                 let embed = new Discord.MessageEmbed().setTitle(
-                    `:chart_with_upwards_trend: ${user.name}'s Positions :chart_with_upwards_trend:`
+                    `:chart_with_upwards_trend: ${user.name}'s Positions :chart_with_upwards_trend: (Updated every ${timeStr} minutes)`
                 );
 
                 user.stocks.forEach((s: stock_position) => {
