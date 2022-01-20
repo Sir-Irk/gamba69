@@ -67,6 +67,7 @@ import {
 } from './src/horse_racing';
 
 import { daily_bones, start_working } from './src/misc';
+import { get_stock_price } from './src/finnhub';
 
 let botInitialized = false;
 
@@ -812,6 +813,30 @@ client.on('messageCreate', async (msg) => {
                     .catch(function (error: any) {
                         console.error(error);
                     });
+            }
+            break;
+
+        case 'ticker':
+            {
+                if (args.length < 1) {
+                    await msg.reply(`Usage: ${prefix}ticker <symbol>`);
+                    return;
+                }
+                const ticker = args[0].toUpperCase();
+                const data = await get_stock_price(ticker);
+                if (data) {
+                    let embed = new Discord.MessageEmbed().setTitle(`:chart_with_upwards_trend: ${ticker} :chart_with_upwards_trend:`);
+                    embed.addFields(
+                        { name: 'Current', value: `${data.c}`, inline: true },
+                        { name: 'Change', value: `${data.d}%`, inline: true },
+                        { name: 'Open', value: `${data.o}`, inline: true },
+                        { name: 'High', value: `${data.h}`, inline: true },
+                        { name: 'Low', value: `${data.l}`, inline: true }
+                    );
+                    await msg.reply({ embeds: [embed] });
+                } else {
+                    await msg.reply('Failed to find that stock');
+                }
             }
             break;
 
