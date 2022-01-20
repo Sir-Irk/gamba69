@@ -24,8 +24,12 @@ export class stock_position {
         return this.pricePerShare - this.averageCostPerShare;
     }
 
+    public get_investment() {
+        return this.averageCostPerShare * this.numShares;
+    }
+
     public get_profit() {
-        return this.position_size() - this.averageCostPerShare * this.numShares;
+        return this.position_size() - this.get_investment();
     }
 
     public get_profit_percentage() {

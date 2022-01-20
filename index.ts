@@ -916,14 +916,18 @@ client.on('messageCreate', async (msg) => {
                     `:chart_with_upwards_trend: ${user.name}'s Positions :chart_with_upwards_trend: (Updated every ${timeStr} minutes)`
                 );
 
+                let profitSum = 0;
+                let investmentSum = 0;
+                let balance = 0;
+                const blk = '```';
+
                 user.stocks.forEach((s: stock_position) => {
-                    const profitPercentStr = s.get_profit_percentage().toLocaleString('en-US');
-                    const profitStr = s.get_profit().toLocaleString('en-US');
+                    const profit = s.get_profit();
+                    const profitPercent = s.get_profit_percentage();
+                    const profitPercentStr = profitPercent.toLocaleString('en-US');
+                    const profitStr = profit.toLocaleString('en-US');
                     const priceDiffStr = s.get_price_difference().toLocaleString('en-US');
-                    const blk = '```';
-                    let str = `${blk}diff\n${
-                        s.get_profit() >= 0 ? '+' : '-'
-                    }Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
+                    let str = `${blk}diff\n${profit >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
 
                     str += blk;
                     str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
@@ -932,7 +936,20 @@ client.on('messageCreate', async (msg) => {
                     str += `Avg Price  : ${s.averageCostPerShare.toLocaleString('en-US')}\n`;
                     str += `Price Diff : ${priceDiffStr}\n${blk}`;
                     embed.addFields({ name: s.ticker, value: str, inline: false });
+
+                    profitSum += profit;
+                    investmentSum += s.get_investment();
+                    balance += s.position_size();
                 });
+
+                const profitPercent = (profitSum / investmentSum) * 100;
+                const profitPercentStr = profitPercent.toLocaleString('en-US');
+                const profitStr = profitSum.toLocaleString('en-US');
+                let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
+                str += blk;
+                str += `Balance: ${boneSymbol} ${balance.toLocaleString('en-US')}\n`;
+                str += blk;
+                embed.addFields({ name: `Account Total`, value: str, inline: false });
 
                 await msg.reply({ embeds: [embed] });
             }
