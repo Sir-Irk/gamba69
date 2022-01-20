@@ -831,7 +831,8 @@ client.on('messageCreate', async (msg) => {
                         { name: 'Change', value: `${data.d}%`, inline: true },
                         { name: 'Open', value: `${data.o}`, inline: true },
                         { name: 'High', value: `${data.h}`, inline: true },
-                        { name: 'Low', value: `${data.l}`, inline: true }
+                        { name: 'Low', value: `${data.l}`, inline: true },
+                        { name: 'Prev Close', value: `${data.pc}`, inline: true }
                     );
                     await msg.reply({ embeds: [embed] });
                 } else {
