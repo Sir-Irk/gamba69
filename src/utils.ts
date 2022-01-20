@@ -376,7 +376,7 @@ export async function load_users(): Promise<void> {
             user.dailyStreak = u.dailyStreak;
             user.charityCollectionTime = u.charityCollectionTime;
             user.highestBones = u.highestBones;
-            if (u.stocks) user.stocks = u.stocks;
+            if (u.stockPositions) user.stocks = u.stockPositions;
             if (u.numHorsesOwned != undefined) user.numHorsesOwned = u.numHorsesOwned;
 
             if (u.gameStats) {
