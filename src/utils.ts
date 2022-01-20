@@ -7,6 +7,7 @@ import { GIFS, EMOJIS } from './media';
 import { game_stats, user_account, user_guild, user_state } from './user';
 import { race_horse } from './horse_racing';
 import { client, DEBUG_MODE, DEBUG_TIMING, log_error } from '../index';
+import { stock_position } from './stocks';
 
 export const userDataJsonPath = 'user_data.json';
 
@@ -23,6 +24,9 @@ export enum game_category {
     slots,
     horseRacing,
     count,
+}
+export function approx_eq(v1: number, v2: number, epsilon: number = 0.00001) {
+    return Math.abs(v1 - v2) <= epsilon;
 }
 
 export function get_id_from_tag(tag: string) {
@@ -76,7 +80,7 @@ export function user_is_playing_game(user: user_account, msg: Discord.Message<bo
     return false;
 }
 
-export function get_suffix_int(inStr: String) {
+export function get_suffix_value(inStr: String, toInt: boolean = false) {
     let result = 0;
     if (inStr.length > 0 && inStr[inStr.length - 1].toLowerCase() == 'k') {
         let bones = parseFloat(inStr.substring(0, inStr.length - 1));
@@ -100,7 +104,7 @@ export function get_suffix_int(inStr: String) {
     return result;
 }
 
-export function get_percentage_int(bones: number, inStr: string): number {
+export function get_percentage(value: number, inStr: string): number {
     let result = 0;
     if (inStr.length > 0 && inStr[inStr.length - 1] == '%') {
         const str = inStr.substring(0, inStr.length - 1);
@@ -108,7 +112,22 @@ export function get_percentage_int(bones: number, inStr: string): number {
         if (isNaN(percentage) || percentage < 0) {
             result = -1;
         } else {
-            result = Math.round(bones * Math.max(0, Math.min(1, percentage / 100)));
+            result = value * Math.max(0, Math.min(1, percentage / 100));
+        }
+    }
+
+    return result;
+}
+
+export function get_percentage_int(value: number, inStr: string): number {
+    let result = 0;
+    if (inStr.length > 0 && inStr[inStr.length - 1] == '%') {
+        const str = inStr.substring(0, inStr.length - 1);
+        const percentage = parseFloat(str);
+        if (isNaN(percentage) || percentage < 0) {
+            result = -1;
+        } else {
+            result = Math.round(value * Math.max(0, Math.min(1, percentage / 100)));
         }
     }
 
@@ -305,6 +324,7 @@ export function write_user_data_json(user: user_account) {
         highestBones: user.highestBones,
         gameStats: user.gameStats,
         numHorsesOwned: user.numHorsesOwned,
+        stockPositions: user.stocks,
     };
     fs.writeFileSync(userDataJsonPath, JSON.stringify(json, null, 2));
     isWritingJSONfile = false;
@@ -356,6 +376,7 @@ export async function load_users(): Promise<void> {
             user.dailyStreak = u.dailyStreak;
             user.charityCollectionTime = u.charityCollectionTime;
             user.highestBones = u.highestBones;
+            if (u.stocks) user.stocks = u.stocks;
             if (u.numHorsesOwned != undefined) user.numHorsesOwned = u.numHorsesOwned;
 
             if (u.gameStats) {
@@ -723,9 +744,28 @@ export async function display_help(msg: Discord.Message<boolean>): Promise<void>
     await msg.reply({ embeds: [embed] });
 }
 
+export function parse_stock_sell_share_count(stock: stock_position, arg: any, msg: Discord.Message): number {
+    let numShares = get_percentage(stock.numShares, arg);
+    if (numShares === 0) numShares = get_suffix_value(arg);
+
+    if (numShares === 0) {
+        const parsedArg = parseFloat(arg);
+        numShares = arg.toLowerCase() == 'all' ? stock.numShares : parsedArg;
+        if (isNaN(numShares)) {
+            numShares = 0;
+        }
+    }
+
+    if (numShares <= 0) {
+        msg.reply(`Error : Invalid amount of shares: entered **${numShares}**`);
+        return 0;
+    }
+    return numShares;
+}
+
 export function parse_bet(user: user_account, arg: any, msg: Discord.Message): number {
     let bet = get_percentage_int(user.bones, arg);
-    if (bet == 0) bet = get_suffix_int(arg);
+    if (bet == 0) bet = get_suffix_value(arg, true);
 
     if (bet == 0) {
         const parsedArg = parseInt(arg);

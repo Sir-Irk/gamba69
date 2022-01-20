@@ -43,6 +43,8 @@ import {
     load_nicknames,
     userDataJsonPath,
     delay,
+    parse_stock_sell_share_count,
+    approx_eq,
 } from './src/utils';
 
 import {
@@ -821,20 +823,23 @@ client.on('messageCreate', async (msg) => {
 
         case 'invest':
             {
+                if (user_is_playing_game(user, msg)) return;
                 if (args.length < 2) {
-                    await msg.reply(`Usage: ${prefix}invest <amount of bones> <symbol>`);
+                    await msg.reply(
+                        `Usage: ${prefix}invest <ticker symbol> <amount of bones>\nExample: ${prefix}invest amc 5000\nUse -USD at the end of crypto tickers. For example BTC-USD`
+                    );
                     return;
                 }
 
-                if (user_is_playing_game(user, msg)) return;
-                const ticker = args[1].toUpperCase();
-                const amount = parse_bet(user, args[0], msg);
+                const ticker = args[0].toUpperCase();
+                const amount = parse_bet(user, args[1], msg);
                 if (amount > 0) {
                     const data = await get_stock_price(ticker);
                     if (data.c && data.c > 0) {
                         const shares = amount / data.c;
                         const position = new stock_position(ticker, data.c, shares);
                         if (user.add_stock_position(position)) {
+                            user.add_money(-position.position_size());
                             await msg.reply(
                                 `You just received ${shares.toLocaleString('en-US')} shares of ${ticker} @ ${data.c.toLocaleString(
                                     'en-US'
@@ -844,8 +849,57 @@ client.on('messageCreate', async (msg) => {
                             await msg.reply(`You can't hold any more positions. You can add to an already held stock/crpyto or sell.`);
                         }
                     } else {
-                        await msg.reply(`Failed to find stock or crypto "${args[1]}"`);
+                        await msg.reply(`Failed to find stock or crypto "${args[0]}"`);
                     }
+                }
+            }
+            break;
+        case 'sellstock':
+            {
+                if (user_is_playing_game(user, msg)) return;
+                if (user.stocks.length == 0) {
+                    await msg.reply(`You don't have any stocks. use ${prefix}invest to open a position.`);
+                    return;
+                }
+
+                if (args.length < 2) {
+                    await msg.reply(`Usage: ${prefix}sellstock <ticker symbol> <number of shares>`);
+                    return;
+                }
+
+                const ticker = args[0].toUpperCase();
+                const position = user.stocks.find((s) => {
+                    return s.ticker === ticker;
+                });
+                console.log(`Num shares before ${position.numShares}`);
+                if (position) {
+                    const numberOfShares = parse_stock_sell_share_count(position, args[1], msg);
+                    if (numberOfShares > 0) {
+                        if (numberOfShares > position.numShares) {
+                            await msg.reply(`You don't own that many shares in ${position.ticker}. You have ${position.numShares} shares`);
+                            return;
+                        }
+
+                        let money = 0;
+                        if (approx_eq(position.numShares, numberOfShares)) {
+                            money = Math.floor(position.position_size());
+                            user.add_money(money);
+                            user.stocks = user.stocks.filter((s) => {
+                                s !== position;
+                            });
+                        } else {
+                            money = Math.floor(numberOfShares * position.pricePerShare);
+                            user.add_money(money);
+                            position.numShares -= numberOfShares;
+                        }
+                        await msg.reply(
+                            `You Sold ${numberOfShares.toLocaleString('en-US')} of ${
+                                position.ticker
+                            } @ ${position.pricePerShare.toLocaleString('en-US')} for a total of ${money.toLocaleString('en-US')}`
+                        );
+                    }
+                } else {
+                    await msg.reply(`You don't own stock in ${ticker}`);
                 }
             }
             break;
@@ -853,7 +907,7 @@ client.on('messageCreate', async (msg) => {
         case 'mystocks':
             {
                 if (user.stocks.length == 0) {
-                    msg.reply(`You don't have any stocks. use ${prefix}invest to open a position.`);
+                    await msg.reply(`You don't have any stocks. use ${prefix}invest to open a position.`);
                     return;
                 }
 
@@ -862,7 +916,9 @@ client.on('messageCreate', async (msg) => {
                 );
 
                 user.stocks.forEach((s: stock_position) => {
-                    let str = `Profit: ${s.get_profit().toLocaleString('en-US')}%\n`;
+                    const profitPercentStr = s.get_profit_percentage().toLocaleString('en-US');
+                    const profitStr = s.get_profit().toLocaleString('en-US');
+                    let str = `Profit: (${profitPercentStr}%) %{boneSymbol} ${profitStr}\n`;
                     str += `Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}\n`;
                     str += `Shares: ${s.numShares.toLocaleString('en-US')}\n`;
                     str += `Avg Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
