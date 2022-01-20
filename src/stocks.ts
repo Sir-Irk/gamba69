@@ -96,7 +96,7 @@ export async function invest_in_stock(user: user_account, args: string[], short:
             const position = new stock_position(ticker, short, data.c, data.c, shares);
             try {
                 user.add_stock_position(position);
-                user.add_money(-position.position_size());
+                user.add_money(Math.floor(-position.position_size()));
                 await msg.reply(
                     `You went ${short ? 'short' : 'long'} on ${shares.toLocaleString(
                         'en-US'
