@@ -939,7 +939,7 @@ client.on('messageCreate', async (msg) => {
                 const profitStr = profitSum.toLocaleString('en-US');
                 const balance = investmentSum + profitSum;
                 let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}`;
-                str += `Profit     : ${profitStr} (${profitPercentStr}%)\n`;
+                str += `Profit    : ${profitStr} (${profitPercentStr}%)\n`;
                 str += `Investment : ${investmentSum.toLocaleString('en-US')}\n`;
                 str += `Balance    : ${balance.toLocaleString('en-US')}\n`;
                 str += blk;
