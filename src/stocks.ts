@@ -55,14 +55,6 @@ async function update_stock_callback(stock: stock_position, priceData: any) {
     }
 }
 
-class user_stock_update {
-    stocks: stock_position[];
-    constructor(stock: stock_position = null) {
-        this.stocks = [];
-        if (stock) this.stocks.push(stock);
-    }
-}
-
 export async function update_user_stock_prices(userGuilds: user_guild[]) {
     while (true) {
         console.time('User stock update');

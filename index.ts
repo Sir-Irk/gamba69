@@ -919,16 +919,18 @@ client.on('messageCreate', async (msg) => {
                     const type = s.short ? 'SHORT' : 'LONG';
                     const priceStr = s.averageCostPerShare.toLocaleString('en-US');
                     const profitSymbol = profit >= 0 ? '+' : '-';
-                    let str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}%)\n`;
+                    const curPriceStr = s.pricePerShare.toLocaleString('en-US');
+                    let str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}% @ ${curPriceStr})\n`;
 
                     if (fullDisplay) {
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                         str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
                         str += `Price Diff : ${priceDiffStr}\n`;
+                        str += `Cur Price  : ${curPriceStr}\n`;
                     }
-                    str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
                     str += blk;
-                    embed.addFields({ name: `${s.ticker} ${type} @ ${priceStr}`, value: str, inline: false });
+                    const emoji = profit >= 0 ? `:chart_with_upwards_trend:` : `:chart_with_downwards_trend:`;
+                    embed.addFields({ name: `${emoji} ${s.ticker} ${type} @ ${priceStr}`, value: str, inline: false });
 
                     profitSum += profit;
                     investmentSum += s.get_investment();
