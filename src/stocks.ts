@@ -48,17 +48,25 @@ export class stock_position {
     }
 }
 
-async function update_stock_callback(user: user_account, stock: stock_position, priceData: any) {
+async function update_stock_callback(stock: stock_position, priceData: any) {
     if (priceData && priceData.c !== 0) {
         stock.pricePerShare = priceData.c;
-        console.log(`User ${user.name} stock ${stock.ticker} updated`);
+        console.log(`Stock ${stock.ticker} updated`);
+    }
+}
+
+class user_stock_update {
+    stocks: stock_position[];
+    constructor(stock: stock_position = null) {
+        this.stocks = [];
+        if (stock) this.stocks.push(stock);
     }
 }
 
 export async function update_user_stock_prices(userGuilds: user_guild[]) {
     while (true) {
         console.time('User stock update');
-        const prices = [];
+        const updates = new Map<string, stock_position[]>();
 
         for (let guildIdx = 0; guildIdx < userGuilds.length; ++guildIdx) {
             let users = userGuilds[guildIdx].users;
@@ -68,12 +76,28 @@ export async function update_user_stock_prices(userGuilds: user_guild[]) {
 
                 for (let i = 0; i < u.stocks.length; ++i) {
                     let s = u.stocks[i];
-                    get_stock_price(s.ticker).then((r) => {
-                        update_stock_callback(u, s, r);
-                    });
+                    let updateObj = updates.get(s.ticker);
+                    if (!updateObj) {
+                        //console.log(`Created: ${s.ticker}`);
+                        updates.set(s.ticker, [s]);
+                    } else {
+                        updateObj.push(s);
+                        //console.log(`Added: ${s.ticker}`);
+                    }
                 }
             }
         }
+
+        //for (let i = 0; i < updates.keys.length; ++i) {
+        for (let [ticker, stocks] of updates.entries()) {
+            get_stock_price(ticker).then((r) => {
+                for (let i = 0; i < stocks.length; ++i) {
+                    let s = stocks[i];
+                    update_stock_callback(s, r);
+                }
+            });
+        }
+
         console.timeEnd('User stock update');
         await delay(cfg.userStockUpdateInterval);
     }
