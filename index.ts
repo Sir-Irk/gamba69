@@ -279,7 +279,7 @@ client.on('messageCreate', async (msg) => {
     }
 
     switch (command) {
-        case 'toggleGifs':
+        case 'togglegifs':
             {
                 if (user.id !== '150097140448886784') {
                     return;
