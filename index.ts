@@ -918,13 +918,13 @@ client.on('messageCreate', async (msg) => {
                 );
 
                 user.stocks.forEach((s: stock_position) => {
-                    const profitPercentStr = s.get_profit_percentage().toFixed(2);
-                    const profitStr = s.get_profit().toFixed(2);
-                    const priceDiffStr = s.get_price_difference().toFixed(2);
+                    const profitPercentStr = s.get_profit_percentage().toLocaleString('en-US');
+                    const profitStr = s.get_profit().toLocaleString('en-US');
+                    const priceDiffStr = s.get_price_difference().toLocaleString('en-US');
                     let str = `Profit: (${profitPercentStr}%) ${boneSymbol} ${profitStr}\n`;
-                    str += `Value: ${boneSymbol} ${s.position_size().toFixed(2)}`;
-                    str += `Shares: ${s.numShares.toFixed(2)}\n`;
-                    str += `Avg Price: ${s.pricePerShare.toFixed(2)}\n`;
+                    str += `Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}`;
+                    str += `Shares: ${s.numShares.toLocaleString('en-US')}\n`;
+                    str += `Avg Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
                     str += `Price Diff: ${priceDiffStr}\n`;
                     embed.addFields({ name: s.ticker, value: str, inline: true });
                 });
