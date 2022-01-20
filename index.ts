@@ -928,9 +928,10 @@ client.on('messageCreate', async (msg) => {
 
                     str += `${blk}Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}\n`;
                     str += `Shares: ${s.numShares.toLocaleString('en-US')}\n`;
+                    str += `Cur Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
                     str += `Avg Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
                     str += `Price Diff: ${priceDiffStr}\n${blk}`;
-                    embed.addFields({ name: s.ticker, value: str, inline: true });
+                    embed.addFields({ name: s.ticker, value: str, inline: false });
                 });
 
                 await msg.reply({ embeds: [embed] });
