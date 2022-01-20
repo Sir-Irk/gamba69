@@ -923,11 +923,11 @@ client.on('messageCreate', async (msg) => {
                         str += blk;
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                         str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
-                        str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
-                        str += `Avg Price  : ${s.averageCostPerShare.toLocaleString('en-US')}\n`;
                         str += `Price Diff : ${priceDiffStr}\n${blk}`;
-                        embed.addFields({ name: `${s.ticker} ${type}`, value: str, inline: false });
                     }
+                    str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
+                    str += `Avg Price  : ${s.averageCostPerShare.toLocaleString('en-US')}\n`;
+                    embed.addFields({ name: `${s.ticker} ${type}`, value: str, inline: false });
 
                     profitSum += profit;
                     investmentSum += s.get_investment();
