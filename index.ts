@@ -917,7 +917,9 @@ client.on('messageCreate', async (msg) => {
                     const profitStr = profit.toLocaleString('en-US');
                     const priceDiffStr = s.get_price_difference().toLocaleString('en-US');
                     const type = s.short ? 'SHORT' : 'LONG';
-                    let str = `${blk}diff\n${profit >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n`;
+                    const priceStr = s.averageCostPerShare.toLocaleString('en-US');
+                    const profitSymbol = profit >= 0 ? '+' : '-';
+                    let str = `${blk}diff\n${profitSymbol}Profit    : ${profitSymbol}${profitStr} (${profitPercentStr}%)\n`;
 
                     if (fullDisplay) {
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
@@ -925,9 +927,8 @@ client.on('messageCreate', async (msg) => {
                         str += `Price Diff : ${priceDiffStr}\n`;
                     }
                     str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
-                    str += `Avg Price  : ${s.averageCostPerShare.toLocaleString('en-US')}\n`;
                     str += blk;
-                    embed.addFields({ name: `${s.ticker} ${type}`, value: str, inline: false });
+                    embed.addFields({ name: `${s.ticker} ${type} @ ${priceStr}`, value: str, inline: false });
 
                     profitSum += profit;
                     investmentSum += s.get_investment();
