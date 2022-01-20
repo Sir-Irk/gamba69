@@ -917,9 +917,8 @@ client.on('messageCreate', async (msg) => {
                     const profitStr = profit.toLocaleString('en-US');
                     const priceDiffStr = s.get_price_difference().toLocaleString('en-US');
                     const type = s.short ? 'SHORT' : 'LONG';
-                    let str = `${blk}diff\n${profit >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
+                    let str = `${blk}diff\n${profit >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n`;
 
-                    str += blk;
                     if (fullDisplay) {
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                         str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
