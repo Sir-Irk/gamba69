@@ -196,7 +196,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
                 messages[messageIdx]
             }`
         );
-        await msg.channel.send(`${GIFS.winSlotsGif}`);
+        if (cfg.slotsGifsEnabled) msg.channel.send(`${GIFS.winSlotsGif}`);
     } else {
         const lossStr = (bet - betBonus).toLocaleString('en-US');
         const bonusStr = betBonus.toLocaleString('en-US');
@@ -213,7 +213,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
             won = false;
             await msg.reply(`${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`);
         }
-        await msg.channel.send(`${GIFS.loseSlotsGif}`);
+        if (cfg.slotsGifsEnabled) msg.channel.send(`${GIFS.loseSlotsGif}`);
     }
 
     user.add_money(prize);

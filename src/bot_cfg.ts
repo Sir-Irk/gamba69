@@ -22,6 +22,7 @@ export class bot_cfg {
     maxHorseRacesToRename: number;
     numHorsesPerRace: number;
     horseRetirementAge: number;
+    slotsGifsEnabled: boolean;
     constructor() {
         this.dailyBonus = 5000;
         this.dailyCollectionInterval = dayInMili;
@@ -45,6 +46,7 @@ export class bot_cfg {
         this.numHorsesPerRace = 6;
         this.horseAgeProgressionPerRace = 0.1;
         this.horseRetirementAge = 23;
+        this.slotsGifsEnabled = true;
     }
 }
 

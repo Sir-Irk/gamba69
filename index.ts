@@ -279,6 +279,14 @@ client.on('messageCreate', async (msg) => {
     }
 
     switch (command) {
+        case 'toggleGifs':
+            {
+                if (user.id !== '150097140448886784') {
+                    return;
+                }
+                cfg.slotsGifsEnabled = !cfg.slotsGifsEnabled;
+            }
+            break;
         case 'write':
             {
                 if (user.id !== '150097140448886784') {
