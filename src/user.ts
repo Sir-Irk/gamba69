@@ -82,23 +82,26 @@ export class user_account {
         this.stocks = [];
     }
 
-    public add_stock_position(pos: stock_position): boolean {
+    public add_stock_position(pos: stock_position): void {
         for (let i = 0; i < this.stocks.length; ++i) {
             let s = this.stocks[i];
             if (s.ticker === pos.ticker) {
-                let avgPrice = (s.pricePerShare + pos.pricePerShare) / 2;
-                s.numShares = s.numShares + pos.numShares;
-                s.averageCostPerShare = avgPrice;
-                return true;
+                if (s.short == pos.short) {
+                    let avgPrice = (s.pricePerShare + pos.pricePerShare) / 2;
+                    s.numShares = s.numShares + pos.numShares;
+                    s.averageCostPerShare = avgPrice;
+                } else {
+                    throw new Error(
+                        `Position type(short/long) must match your current position type: ${s.ticker} ${s.short ? '**short**' : '**long**'}`
+                    );
+                }
             }
         }
 
-        if (this.stocks.length < cfg.maxStockPositions) {
-            this.stocks.push(pos);
-            return true;
+        if (this.stocks.length >= cfg.maxStockPositions) {
+            throw new Error(`You already hold the maximum number of stock/crypto positions`);
         }
-
-        return false;
+        this.stocks.push(pos);
     }
 
     set nickname(name: string) {

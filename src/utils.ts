@@ -390,7 +390,8 @@ export async function load_users(): Promise<void> {
             if (u.stockPositions) {
                 const positions = u.stockPositions as stock_position[];
                 positions.forEach((p) => {
-                    user.stocks.push(new stock_position(p.ticker, p.averageCostPerShare, p.pricePerShare, p.numShares));
+                    const short = p.short === undefined ? false : p.short;
+                    user.stocks.push(new stock_position(p.ticker, short, p.averageCostPerShare, p.pricePerShare, p.numShares));
                 });
             }
 

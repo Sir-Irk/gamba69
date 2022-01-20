@@ -70,7 +70,7 @@ import {
 
 import { daily_bones, start_working } from './src/misc';
 import { get_stock_price } from './src/finnhub';
-import { stock_position, update_user_stock_prices } from './src/stocks';
+import { invest_in_stock, stock_position, update_user_stock_prices } from './src/stocks';
 
 let botInitialized = false;
 
@@ -821,41 +821,19 @@ client.on('messageCreate', async (msg) => {
             }
             break;
 
-        case 'invest':
+        case 'long':
             {
-                if (user_is_playing_game(user, msg)) return;
-                if (args.length < 2) {
-                    await msg.reply(
-                        `Usage: ${prefix}invest <ticker symbol> <amount of bones>\nExample: ${prefix}invest amc 5000\nUse -USD at the end of crypto tickers. For example BTC-USD`
-                    );
-                    return;
-                }
-
-                const ticker = args[0].toUpperCase();
-                const amount = parse_bet(user, args[1], msg);
-                if (amount > 0) {
-                    const data = await get_stock_price(ticker);
-                    if (data.c && data.c > 0) {
-                        const shares = amount / data.c;
-                        const position = new stock_position(ticker, data.c, data.c, shares);
-                        if (user.add_stock_position(position)) {
-                            user.add_money(-position.position_size());
-                            await msg.reply(
-                                `You just received ${shares.toLocaleString('en-US')} shares of ${ticker} @ ${data.c.toLocaleString(
-                                    'en-US'
-                                )} per share for a total of ${amount.toLocaleString('en-US')} ${boneSymbol}`
-                            );
-                            write_user_data_json(user);
-                        } else {
-                            await msg.reply(`You can't hold any more positions. You can add to an already held stock/crpyto or sell.`);
-                        }
-                    } else {
-                        await msg.reply(`Failed to find stock or crypto "${args[0]}"`);
-                    }
-                }
+                await invest_in_stock(user, args, false, msg);
             }
             break;
-        case 'sellstock':
+        case 'short':
+            {
+                await invest_in_stock(user, args, true, msg);
+            }
+            break;
+        case 'closeposition':
+        case 'closep':
+        case 'cp':
             {
                 if (user_is_playing_game(user, msg)) return;
                 if (user.stocks.length == 0) {
@@ -887,12 +865,12 @@ client.on('messageCreate', async (msg) => {
                             user.add_money(money);
                             user.stocks.splice(idx, 1);
                         } else {
-                            money = Math.floor(numberOfShares * position.pricePerShare);
+                            money = Math.floor(position.position_size() / numberOfShares);
                             user.add_money(money);
                             position.numShares -= numberOfShares;
                         }
                         await msg.reply(
-                            `You Sold ${numberOfShares.toLocaleString('en-US')} of ${
+                            `You ${position.short ? 'covered' : 'sold'} ${numberOfShares.toLocaleString('en-US')} of ${
                                 position.ticker
                             } @ ${position.pricePerShare.toLocaleString('en-US')} for a total of ${money.toLocaleString('en-US')}`
                         );
@@ -930,6 +908,7 @@ client.on('messageCreate', async (msg) => {
                     let str = `${blk}diff\n${profit >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
 
                     str += blk;
+                    str += `Type       : ${s.short ? 'SHORT' : 'LONG'}\n`;
                     str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                     str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
                     str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
