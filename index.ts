@@ -19,7 +19,7 @@ import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
+export const DEBUG_MODE = true;
 export const DEBUG_TIMING = false;
 
 import {
@@ -68,6 +68,7 @@ import {
 
 import { daily_bones, start_working } from './src/misc';
 import { get_stock_price } from './src/finnhub';
+import { stock_position, update_user_stock_prices } from './src/stocks';
 
 let botInitialized = false;
 
@@ -128,6 +129,7 @@ async function initialize() {
     console.log('finished loading users');
     load_nicknames(userGuilds);
     hourlyBackUp();
+    update_user_stock_prices(userGuilds);
     botInitialized = true;
 }
 
@@ -432,6 +434,7 @@ client.on('messageCreate', async (msg) => {
                 }
 
                 let bet = parse_bet(user, args[0], msg);
+
                 if (bet > 0) {
                     await slots_game(user, bet, msg);
                     write_user_data_json(user);
@@ -816,6 +819,60 @@ client.on('messageCreate', async (msg) => {
             }
             break;
 
+        case 'invest':
+            {
+                if (args.length < 2) {
+                    await msg.reply(`Usage: ${prefix}invest <amount of bones> <symbol>`);
+                    return;
+                }
+
+                if (user_is_playing_game(user, msg)) return;
+                const ticker = args[1].toUpperCase();
+                const amount = parse_bet(user, args[0], msg);
+                if (amount > 0) {
+                    const data = await get_stock_price(ticker);
+                    if (data.c && data.c > 0) {
+                        const shares = amount / data.c;
+                        const position = new stock_position(ticker, data.c, shares);
+                        if (user.add_stock_position(position)) {
+                            await msg.reply(
+                                `You just received ${shares.toLocaleString('en-US')} shares of ${ticker} @ ${data.c.toLocaleString(
+                                    'en-US'
+                                )} per share for a total of ${amount} ${boneSymbol}`
+                            );
+                        } else {
+                            await msg.reply(`You can't hold any more positions. You can add to an already held stock/crpyto or sell.`);
+                        }
+                    } else {
+                        await msg.reply(`Failed to find stock or crypto "${args[1]}"`);
+                    }
+                }
+            }
+            break;
+
+        case 'mystocks':
+            {
+                if (user.stocks.length == 0) {
+                    msg.reply(`You don't have any stocks. use ${prefix}invest to open a position.`);
+                    return;
+                }
+
+                let embed = new Discord.MessageEmbed().setTitle(
+                    `:chart_with_upwards_trend: ${user.name}'s Positions :chart_with_upwards_trend:`
+                );
+
+                user.stocks.forEach((s: stock_position) => {
+                    let str = `Profit: ${s.get_profit().toLocaleString('en-US')}%\n`;
+                    str += `Value: ${boneSymbol} ${s.position_size().toLocaleString('en-US')}\n`;
+                    str += `Shares: ${s.numShares.toLocaleString('en-US')}\n`;
+                    str += `Avg Price: ${s.pricePerShare.toLocaleString('en-US')}\n`;
+                    embed.addFields({ name: s.ticker, value: str, inline: true });
+                });
+
+                await msg.reply({ embeds: [embed] });
+            }
+            break;
+
         case 'ticker':
             {
                 if (args.length < 1) {
@@ -824,7 +881,7 @@ client.on('messageCreate', async (msg) => {
                 }
                 const ticker = args[0].toUpperCase();
                 const data = await get_stock_price(ticker);
-                if (data) {
+                if (data.c && data.c > 0) {
                     let embed = new Discord.MessageEmbed().setTitle(`:chart_with_upwards_trend: ${ticker} :chart_with_upwards_trend:`);
                     embed.addFields(
                         { name: 'Current', value: `${data.c}`, inline: true },
@@ -836,7 +893,7 @@ client.on('messageCreate', async (msg) => {
                     );
                     await msg.reply({ embeds: [embed] });
                 } else {
-                    await msg.reply('Failed to find that stock');
+                    await msg.reply(`Failed to find stock or crypto "${args[0]}"`);
                 }
             }
             break;

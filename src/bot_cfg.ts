@@ -23,6 +23,8 @@ export class bot_cfg {
     numHorsesPerRace: number;
     horseRetirementAge: number;
     slotsGifsEnabled: boolean;
+    maxStockPositions: number;
+    userStockUpdateInterval: number;
     constructor() {
         this.dailyBonus = 5000;
         this.dailyCollectionInterval = dayInMili;
@@ -47,6 +49,8 @@ export class bot_cfg {
         this.horseAgeProgressionPerRace = 0.1;
         this.horseRetirementAge = 23;
         this.slotsGifsEnabled = true;
+        this.maxStockPositions = 3;
+        this.userStockUpdateInterval = 60000;
     }
 }
 

@@ -2,6 +2,9 @@ import { roulette_game_data } from './russian_roulette';
 import { blackjack_game_data } from './blackjack';
 import { game_category } from './utils';
 import { bet_pool, race_horse } from './horse_racing';
+import { cfg } from './bot_cfg';
+import { assert } from 'chai';
+import { stock_position } from './stocks';
 
 export class game_stats {
     played: number;
@@ -26,7 +29,6 @@ export enum user_state {
     namingHorse,
     renamingHorse,
 }
-
 export class user_account {
     id: string;
     guild: string;
@@ -48,9 +50,9 @@ export class user_account {
     highestBones: number;
     numHorsesOwned: number = 0;
     horseToSell: race_horse = null;
-
     gameStats: game_stats[];
     horseBeingRenamed: race_horse;
+    stocks: stock_position[];
     constructor(
         username: string,
         userId: string,
@@ -77,6 +79,26 @@ export class user_account {
         this.workStartTime = 0;
         this.numHorsesOwned = 0;
         this._nickname = null;
+        this.stocks = [];
+    }
+
+    public add_stock_position(pos: stock_position): boolean {
+        for (let i = 0; i < this.stocks.length; ++i) {
+            let s = this.stocks[i];
+            if (s.ticker === pos.ticker) {
+                let avgPrice = (s.pricePerShare + pos.pricePerShare) / 2;
+                s.numShares = s.numShares + pos.numShares;
+                s.averageCostPerShare = avgPrice;
+                return true;
+            }
+        }
+
+        if (this.stocks.length < cfg.maxStockPositions) {
+            this.stocks.push(pos);
+            return true;
+        }
+
+        return false;
     }
 
     set nickname(name: string) {

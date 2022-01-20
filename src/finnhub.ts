@@ -9,12 +9,13 @@ export async function get_stock_price(ticker: string) {
     let result = null;
     let checked = false;
     finnhubClient.quote(ticker, (error, data, response) => {
-        checked = true;
         if (error) {
             console.log(error);
+            checked = true;
             return;
         }
         result = data;
+        checked = true;
     });
     while (!checked) {
         await delay(10);
