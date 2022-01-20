@@ -273,11 +273,12 @@ export async function print_richest_list(users: user_account[], msg: Discord.Mes
         const netWorth = usr.bones + stockNetWorth;
         const stockNetWorthPercentStr = (netWorth !== 0 ? (stockNetWorth / netWorth) * 100 : 0).toLocaleString();
         const liquidNetWorthPercentStr = (netWorth !== 0 ? (usr.bones / netWorth) * 100 : 0).toLocaleString();
-        const netWorthStr = Math.floor(stockNetWorth).toLocaleString();
+        const netWorthStr = Math.floor(netWorth).toLocaleString();
         const blk = '```';
 
         scores.push(
-            `${blk}fix\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n${blk}`
+            //`${blk}fix\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n${blk}`
+            `$\n${boneSymbol} ${netWorthStr} (${percentage.toLocaleString()}%)\n🏦 Liquid/Stocks: ${liquidNetWorthPercentStr}% / ${stockNetWorthPercentStr}%\n$`
         );
     }
     const embed = new Discord.MessageEmbed().setTitle(`${boneSymbol} Top 10 Richest ${boneSymbol}`).setColor('#00AAFF');
