@@ -923,7 +923,7 @@ client.on('messageCreate', async (msg) => {
 
                     let str = '';
                     if (fullDisplay) {
-                        str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}% \n`;
+                        str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}%)\n`;
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                         str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
                         str += `Price Diff : ${priceDiffStr}\n`;
