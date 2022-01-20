@@ -34,7 +34,7 @@ export class bot_cfg {
         this.workSalaryMax = 10000;
         this.charityCollectionInterval = 5 * minInMili;
         this.charityAmountInBones = 69;
-        this.globalSlotPointsModifier = 1.0;
+        this.globalSlotPointsModifier = 0.5;
         this.bjMessageDelay = 1000;
         this.slotsMessageDelay = 1500;
         this.horseBasePrice = 100000;

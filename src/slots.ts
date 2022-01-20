@@ -12,6 +12,7 @@ const slotMessages = [
         `Look at those tight little asses`,
         `Good old Curly Terry. What's he so happy about anyways?`,
         `The cakes not very big, but you are`,
+        `W0AhoAHohAoaoOhaoaH0AhoAHohAoaoOhaoaH`,
     ],
     [
         `Dwee, dah dah shrah, plah plah sah, dah dah rah, plav da shree, loh ku pah, dav du sah! Soo-da-li dwee-daht, soo-da-li doo-ton plah-blah`,
@@ -19,11 +20,12 @@ const slotMessages = [
         `WOOOOOOOO`,
         `🎵 *Low Rider by War starts playing* 🎵`,
         `The curliest well in town`,
+        `W0AhoAHohAoaoOhaoaH0AhoAHohAoaoOhaoaH`,
     ],
 ];
 
-export let slotPoints = [1.25, 2, 3, 4, 5];
-const slotWeights = [0.5, 0.45, 0.4, 0.35, 0.25];
+export let slotPoints = [1.25, 2, 3, 4, 5, 6];
+const slotWeights = [0.5, 0.45, 0.4, 0.35, 0.25, 0.2];
 for (let i = 0; i < slotPoints.length; ++i) {
     slotPoints[i] *= cfg.globalSlotPointsModifier;
 }
