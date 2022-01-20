@@ -845,6 +845,7 @@ client.on('messageCreate', async (msg) => {
                                     'en-US'
                                 )} per share for a total of ${amount} ${boneSymbol}`
                             );
+                            write_user_data_json(user);
                         } else {
                             await msg.reply(`You can't hold any more positions. You can add to an already held stock/crpyto or sell.`);
                         }
@@ -897,6 +898,7 @@ client.on('messageCreate', async (msg) => {
                                 position.ticker
                             } @ ${position.pricePerShare.toLocaleString('en-US')} for a total of ${money.toLocaleString('en-US')}`
                         );
+                        write_user_data_json(user);
                     }
                 } else {
                     await msg.reply(`You don't own stock in ${ticker}`);
