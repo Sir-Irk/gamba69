@@ -19,8 +19,8 @@ import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE = false;
-export const DEBUG_TIMING = false;
+export const DEBUG_MODE: boolean = false;
+export const DEBUG_TIMING: boolean = false;
 
 import {
     userGuilds,
@@ -927,6 +927,7 @@ client.on('messageCreate', async (msg) => {
                 const profitPercentStr = profitPercent.toLocaleString('en-US');
                 const profitStr = profitSum.toLocaleString('en-US');
                 const balance = investmentSum + profitSum;
+                console.log(`${investmentSum} + ${profitSum} = ${balance}`);
                 let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
                 str += blk;
                 str += `Investment : ${boneSymbol} ${investmentSum.toLocaleString('en-US')}\n`;
