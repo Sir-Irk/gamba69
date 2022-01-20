@@ -919,14 +919,15 @@ client.on('messageCreate', async (msg) => {
                     const type = s.short ? 'SHORT' : 'LONG';
                     let str = `${blk}diff\n${profit >= 0 ? '+' : '-'}Profit: ${boneSymbol} ${profitStr} (${profitPercentStr}%)\n${blk}\n`;
 
+                    str += blk;
                     if (fullDisplay) {
-                        str += blk;
                         str += `Value      : ${s.position_size().toLocaleString('en-US')}\n`;
                         str += `Shares     : ${s.numShares.toLocaleString('en-US')}\n`;
-                        str += `Price Diff : ${priceDiffStr}\n${blk}`;
+                        str += `Price Diff : ${priceDiffStr}\n`;
                     }
                     str += `Cur Price  : ${s.pricePerShare.toLocaleString('en-US')}\n`;
                     str += `Avg Price  : ${s.averageCostPerShare.toLocaleString('en-US')}\n`;
+                    str += blk;
                     embed.addFields({ name: `${s.ticker} ${type}`, value: str, inline: false });
 
                     profitSum += profit;
