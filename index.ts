@@ -929,8 +929,8 @@ client.on('messageCreate', async (msg) => {
                         str += `Cur Price  : ${curPriceStr}\n`;
                     }
                     str += blk;
-                    const emoji = profit >= 0 ? `:chart_with_upwards_trend:` : `:chart_with_downwards_trend:`;
-                    embed.addFields({ name: `${emoji} ${s.ticker} ${type} @ ${priceStr}`, value: str, inline: false });
+                    //const emoji = profit >= 0 ? `:chart_with_upwards_trend:` : `:chart_with_downwards_trend:`;
+                    embed.addFields({ name: `${s.ticker} ${type} @ ${priceStr}`, value: str, inline: false });
 
                     profitSum += profit;
                     investmentSum += s.get_investment();
