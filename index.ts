@@ -869,10 +869,10 @@ client.on('messageCreate', async (msg) => {
                 }
 
                 const ticker = args[0].toUpperCase();
-                const position = user.stocks.find((s) => {
+                const idx = user.stocks.findIndex((s) => {
                     return s.ticker === ticker;
                 });
-                console.log(`Num shares before ${position.numShares}`);
+                const position = idx !== -1 ? user.stocks[idx] : null;
                 if (position) {
                     const numberOfShares = parse_stock_sell_share_count(position, args[1], msg);
                     if (numberOfShares > 0) {
@@ -885,9 +885,7 @@ client.on('messageCreate', async (msg) => {
                         if (approx_eq(position.numShares, numberOfShares)) {
                             money = Math.floor(position.position_size());
                             user.add_money(money);
-                            user.stocks = user.stocks.filter((s) => {
-                                s !== position;
-                            });
+                            user.stocks.splice(idx, 1);
                         } else {
                             money = Math.floor(numberOfShares * position.pricePerShare);
                             user.add_money(money);
