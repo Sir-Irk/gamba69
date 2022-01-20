@@ -332,6 +332,9 @@ export function write_user_data_json(user: user_account) {
 
     return json;
 }
+export function money_str(num: number) {
+    return num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+}
 
 export async function load_users(): Promise<void> {
     let str = new String(userDataJsonPath);

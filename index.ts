@@ -45,6 +45,7 @@ import {
     delay,
     parse_stock_sell_share_count,
     approx_eq,
+    money_str,
 } from './src/utils';
 
 import {
@@ -874,9 +875,9 @@ client.on('messageCreate', async (msg) => {
                             position.numShares -= numberOfShares;
                         }
                         await msg.reply(
-                            `You ${position.short ? 'covered' : 'sold'} ${numberOfShares.toLocaleString('en-US')} of ${
-                                position.ticker
-                            } @ ${position.pricePerShare.toLocaleString('en-US')} for a total of ${money.toLocaleString('en-US')}`
+                            `You ${position.short ? 'covered' : 'sold'} ${money_str(numberOfShares)} of ${position.ticker} @ ${money_str(
+                                position.pricePerShare
+                            )} for a total of ${money_str(money)}`
                         );
                         write_user_data_json(user);
                     }
@@ -913,19 +914,19 @@ client.on('messageCreate', async (msg) => {
                 user.stocks.forEach((s: stock_position) => {
                     const profit = s.get_profit();
                     const profitPercent = s.get_profit_percentage();
-                    const profitPercentStr = profitPercent.toLocaleString();
-                    const profitStr = profit.toFixed(2).toLocaleString();
-                    const priceDiffStr = s.get_price_difference().toFixed(2).toLocaleString();
+                    const profitPercentStr = money_str(profitPercent);
+                    const profitStr = money_str(profit);
+                    const priceDiffStr = money_str(s.get_price_difference());
                     const type = s.short ? 'SHORT' : 'LONG';
-                    const priceStr = s.averageCostPerShare.toFixed(2).toLocaleString();
+                    const priceStr = money_str(s.averageCostPerShare);
                     const profitSymbol = profit >= 0 ? '+' : '-';
-                    const curPriceStr = s.pricePerShare.toFixed(2).toLocaleString();
+                    const curPriceStr = money_str(s.pricePerShare);
 
                     let str = '';
                     if (fullDisplay) {
                         str = `${blk}diff\n${profitSymbol}Profit    : ${profitStr} (${profitPercentStr}%)\n`;
-                        str += `Value      : ${s.position_size().toFixed(2).toLocaleString()}\n`;
-                        str += `Shares     : ${s.numShares.toFixed(2).toLocaleString()}\n`;
+                        str += `Value      : ${money_str(s.position_size())}\n`;
+                        str += `Shares     : ${money_str(s.numShares)}\n`;
                         str += `Price Diff : ${priceDiffStr}\n`;
                         str += `Cur Price  : ${curPriceStr}\n`;
                     } else {
@@ -940,13 +941,13 @@ client.on('messageCreate', async (msg) => {
                 });
 
                 const profitPercent = (profitSum / investmentSum) * 100;
-                const profitPercentStr = profitPercent.toFixed(2).toLocaleString();
-                const profitStr = profitSum.toFixed(2).toLocaleString();
+                const profitPercentStr = money_str(profitPercent);
+                const profitStr = money_str(profitSum);
                 const balance = investmentSum + profitSum;
                 let str = `${blk}diff\n${profitSum >= 0 ? '+' : '-'}`;
                 str += `Profit    : ${profitStr} (${profitPercentStr}%)\n`;
-                str += `Investment : ${Math.floor(investmentSum).toLocaleString()}\n`;
-                str += `Balance    : ${Math.floor(balance).toLocaleString()}\n`;
+                str += `Investment : ${money_str(Math.floor(investmentSum))}\n`;
+                str += `Balance    : ${money_str(Math.floor(balance))}\n`;
                 str += blk;
                 embed.addFields({ name: `Account Total`, value: str, inline: false });
                 await msg.reply({ embeds: [embed] });
