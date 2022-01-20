@@ -376,7 +376,6 @@ export async function load_users(): Promise<void> {
             user.dailyStreak = u.dailyStreak;
             user.charityCollectionTime = u.charityCollectionTime;
             user.highestBones = u.highestBones;
-            if (u.stockPositions) user.stocks = u.stockPositions as stock_position[];
             if (u.numHorsesOwned != undefined) user.numHorsesOwned = u.numHorsesOwned;
 
             if (u.gameStats) {
@@ -387,6 +386,12 @@ export async function load_users(): Promise<void> {
                     user.gameStats.push(new game_stats(i as game_category));
                 }
             }
+
+            const positions = u.stockPositions as stock_position[];
+            positions.forEach((p) => {
+                user.stocks.push(new stock_position(p.ticker, p.averageCostPerShare, p.pricePerShare, p.numShares));
+            });
+
             guild.users.push(user);
             console.log(`Loaded user: ${u.username} for guild ${json[guildKey].guild_name}`);
         }

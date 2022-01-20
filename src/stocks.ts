@@ -9,10 +9,10 @@ export class stock_position {
     pricePerShare: number;
     numShares: number;
 
-    constructor(ticker: string, price: number, numShares: number) {
+    constructor(ticker: string, avgPrice: number, pricePerShare: number, numShares: number) {
         this.ticker = ticker;
-        this.averageCostPerShare = price;
-        this.pricePerShare = price;
+        this.averageCostPerShare = avgPrice;
+        this.pricePerShare = pricePerShare;
         this.numShares = numShares;
     }
 

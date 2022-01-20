@@ -837,7 +837,7 @@ client.on('messageCreate', async (msg) => {
                     const data = await get_stock_price(ticker);
                     if (data.c && data.c > 0) {
                         const shares = amount / data.c;
-                        const position = new stock_position(ticker, data.c, shares);
+                        const position = new stock_position(ticker, data.c, data.c, shares);
                         if (user.add_stock_position(position)) {
                             user.add_money(-position.position_size());
                             await msg.reply(
