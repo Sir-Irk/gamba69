@@ -86,10 +86,11 @@ export class user_account {
         for (let i = 0; i < this.stocks.length; ++i) {
             let s = this.stocks[i];
             if (s.ticker === pos.ticker) {
-                if (s.short == pos.short) {
+                if (s.short === pos.short) {
                     let avgPrice = (s.pricePerShare + pos.pricePerShare) / 2;
                     s.numShares = s.numShares + pos.numShares;
                     s.averageCostPerShare = avgPrice;
+                    return;
                 } else {
                     throw new Error(
                         `Position type(short/long) must match your current position type: ${s.ticker} ${s.short ? '**short**' : '**long**'}`
