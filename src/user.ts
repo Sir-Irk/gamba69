@@ -87,7 +87,7 @@ export class user_account {
             let s = this.stocks[i];
             if (s.ticker === pos.ticker) {
                 if (s.short === pos.short) {
-                    let avgPrice = (s.pricePerShare + pos.pricePerShare) / 2;
+                    let avgPrice = (s.averageCostPerShare + pos.pricePerShare) / 2;
                     s.numShares = s.numShares + pos.numShares;
                     s.averageCostPerShare = avgPrice;
                     return;
