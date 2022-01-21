@@ -53,6 +53,7 @@ export class user_account {
     gameStats: game_stats[];
     horseBeingRenamed: race_horse;
     stocks: stock_position[];
+    lastSlotsGameTime: number;
     constructor(
         username: string,
         userId: string,
@@ -80,6 +81,7 @@ export class user_account {
         this.numHorsesOwned = 0;
         this._nickname = null;
         this.stocks = [];
+        this.lastSlotsGameTime = 0;
     }
 
     public get_net_worth_in_stock() {
