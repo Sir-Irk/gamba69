@@ -504,7 +504,7 @@ client.on('messageCreate', async (msg) => {
 
         case 'dice':
             {
-                await msg.reply(`@meux is that all from dice? ${slotSymbols[5]}`);
+                await msg.reply(`@meux is that all from dice? ${slotSymbols[0][5]}`);
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);
                     return;
