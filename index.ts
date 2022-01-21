@@ -19,7 +19,7 @@ import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
 
-export const DEBUG_MODE: boolean = false;
+export const DEBUG_MODE: boolean = true;
 export const DEBUG_TIMING: boolean = false;
 
 import {
@@ -842,7 +842,42 @@ client.on('messageCreate', async (msg) => {
             }
             break;
 
+        case 'stocks':
+            {
+                let embed = new Discord.MessageEmbed().setTitle(`:chart_with_upwards_trend: Stocks Help :chart_with_upwards_trend:`);
+
+                const blk = '```';
+                let tradeHelp = blk;
+
+                tradeHelp += `asciidoc${prefix}long <ticker symbol> <amount of money>\n--\n`;
+                tradeHelp += `- Stock Example  : ${prefix}long amc 10k  (buys an amount of amc shares equaling 10,000 ${boneSymbol})\n`;
+                tradeHelp += `- Crypto Example : ${prefix}long btc-usd all  (buys an amount of bitcoins equaling all of your total cash\n`;
+                tradeHelp += `- aliases        : ${prefix}invest\n`;
+                tradeHelp += `- Note           : When going long you profit when the price goes up\n`;
+
+                tradeHelp += `${blk}${blk}asciidoc`;
+                tradeHelp += `${prefix}short <ticker symbol> <amount of money>\n--\n`;
+                tradeHelp += `- Stock Example  : ${prefix}short amc 10%  (borrows an amount of amc shares equaling 10% of your total cash\n`;
+                tradeHelp += `- Crypto Example : ${prefix}short btc-usd 10k  (borrows an amount of bitcoins equaling 10,000 ${boneSymbol})\n`;
+                tradeHelp += `- Note           : When going short you profit when the price goes down\n`;
+
+                tradeHelp += `${blk}${blk}asciidoc`;
+                tradeHelp += `${prefix}closeposition <ticker symbol> <number of shares>\n--\n`;
+                tradeHelp += `- Stock Example  : ${prefix}cp amc 10%  (sells or covers 10% of your owned or borrowed shares)\n`;
+                tradeHelp += `- Crypto Example : ${prefix}cp btc-usd all  (sells or covers all of your owned or borrowed bitcoins)\n`;
+                tradeHelp += `- aliases        : ${prefix}cp\n`;
+                tradeHelp += `- Note           : this command is used for cashing out on both long and short positions`;
+                tradeHelp += `${blk}`;
+
+                embed.addFields(
+                    { name: `How to Trade`, value: tradeHelp, inline: false },
+                    { name: `${prefix}ticker <symbol>`, value: `Look up price data on a ticker`, inline: false }
+                );
+            }
+            break;
+
         case 'long':
+        case 'invest':
             {
                 await invest_in_stock(user, args, false, msg);
             }
