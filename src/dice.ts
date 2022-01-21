@@ -37,11 +37,11 @@ export async function dice_game(user: user_account, bet: number, msg: Discord.Me
     let prize = 0;
     if (sum0 > sum1) {
         if (dice0 == 6 && dice1 == 6) {
-            prize = bet * 3;
+            prize = bet;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You rolled a **double 6** and win **${prizeStr}** ${boneSymbol}`);
         } else if (dice0 == dice1) {
-            prize = bet * 2;
+            prize = bet;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You rolled a **double** and win **${prizeStr}** ${boneSymbol}`);
         } else {
