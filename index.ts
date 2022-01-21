@@ -504,6 +504,11 @@ client.on('messageCreate', async (msg) => {
 
         case 'dice':
             {
+                if (msg.guildId !== `922243045787852890`) {
+                    await msg.reply(`Sorry this game is down for maintenance... thank @meux`);
+                    return;
+                }
+
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);
                     return;

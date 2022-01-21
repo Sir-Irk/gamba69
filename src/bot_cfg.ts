@@ -25,6 +25,7 @@ export class bot_cfg {
     slotsGifsEnabled: boolean;
     maxStockPositions: number;
     userStockUpdateInterval: number;
+    diceCooldown: number;
     constructor() {
         this.dailyBonus = 5000;
         this.dailyCollectionInterval = dayInMili;
