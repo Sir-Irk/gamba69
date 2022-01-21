@@ -505,7 +505,8 @@ client.on('messageCreate', async (msg) => {
         case 'dice':
             {
                 if (user.id === '233860813662846976') {
-                    msg.reply(`You are banned from this game for being cringe. And botting or something`);
+                    //msg.reply(`You are banned from this game for being cringe. And botting or something`);
+                    msg.delete();
                     return;
                 }
                 /*
