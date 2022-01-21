@@ -14,7 +14,7 @@ import { slots_game } from './src/slots';
 import { make_it_rain } from './src/rain';
 import { cfg } from './src/bot_cfg';
 import { dayInMili, hourInMili, minInMili } from './src/constants';
-import { boneSymbol, cockEmojis } from './src/symbols';
+import { boneSymbol, cockEmojis, slotSymbols } from './src/symbols';
 import { EMOJIS, GIFS } from './src/media';
 
 const Axios = require('axios').default;
@@ -504,7 +504,7 @@ client.on('messageCreate', async (msg) => {
 
         case 'dice':
             {
-                await msg.reply(`@meux is that all from dice?`);
+                await msg.reply(`@meux is that all from dice? ${slotSymbols[5]}`);
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);
                     return;
