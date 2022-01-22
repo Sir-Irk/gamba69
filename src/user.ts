@@ -54,6 +54,7 @@ export class user_account {
     horseBeingRenamed: race_horse;
     stocks: stock_position[];
     lastSlotsGameTime: number;
+    showGameGifs: boolean = true;
     constructor(
         username: string,
         userId: string,

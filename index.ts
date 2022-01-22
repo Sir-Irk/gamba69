@@ -305,12 +305,17 @@ client.on('messageCreate', async (msg) => {
                 await msg.reply('Squished');
             }
             break;
-        case 'togglegifs':
+        case 'togglegifsg':
             {
-                if (user.id !== '150097140448886784') {
+                if (user.id === '150097140448886784') {
                     return;
                 }
                 cfg.slotsGifsEnabled = !cfg.slotsGifsEnabled;
+            }
+            break;
+        case 'togglegifs':
+            {
+                user.showGameGifs = !user.showGameGifs;
             }
             break;
         case 'write':

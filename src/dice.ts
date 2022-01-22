@@ -49,12 +49,12 @@ export async function dice_game(user: user_account, bet: number, msg: Discord.Me
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You win **${prizeStr}** ${boneSymbol}`);
         }
-        msg.channel.send(`${GIFS.toCashFlowGif}`);
+        if (user.showGameGifs) msg.channel.send(`${GIFS.toCashFlowGif}`);
     } else if (sum1 > sum0) {
         prize = -bet;
         won = false;
         await msg.reply(`:skull_crossbones: ${user.nickname}, My bones! You lose **${bet.toLocaleString('en-US')}** ${boneSymbol}.`);
-        msg.channel.send(`${GIFS.youBustedGif}`);
+        if (user.showGameGifs) msg.channel.send(`${GIFS.youBustedGif}`);
     } else {
         won = false;
         await msg.reply(`${EMOJIS.cringeEmoji} ${user.nickname}, It's a tie... that's pretty cringe`);

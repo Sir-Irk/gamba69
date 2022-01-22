@@ -50,6 +50,7 @@ function random_slot(weights: number[]): number {
 export async function slots_game(user: user_account, bet: number, msg: Discord.Message): Promise<void> {
     if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
     user.state = user_state.playingGame;
+    const showGifs = cfg.slotsGifsEnabled && user.showGameGifs;
     const betStr = bet.toLocaleString('en-US');
     if (bet == user.bones) {
         await msg.channel.send(
@@ -198,7 +199,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
                 messages[messageIdx]
             }`
         );
-        if (cfg.slotsGifsEnabled) msg.channel.send(`${GIFS.winSlotsGif}`);
+        if (showGifs) msg.channel.send(`${GIFS.winSlotsGif}`);
     } else {
         const lossStr = (bet - betBonus).toLocaleString('en-US');
         const bonusStr = betBonus.toLocaleString('en-US');
@@ -215,7 +216,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
             won = false;
             await msg.reply(`${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`);
         }
-        if (cfg.slotsGifsEnabled) msg.channel.send(`${GIFS.loseSlotsGif}`);
+        if (showGifs) msg.channel.send(`${GIFS.loseSlotsGif}`);
     }
 
     user.add_money(prize);

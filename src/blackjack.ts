@@ -245,12 +245,12 @@ async function blackjack_game(user: user_account, bet: number, msg: Discord.Mess
             await msg.reply(
                 `:black_joker: ${user.nickname} Fuck me, you won with a **natural blackjack**. Take your **${prizeStr}** ${boneSymbol}`
             );
-            await msg.channel.send(`${GIFS.toCashFlowGif}`);
+            if (user.showGameGifs) await msg.channel.send(`${GIFS.toCashFlowGif}`);
         } else if (houseSum == 21) {
             await msg.reply(
                 `:black_joker: ${user.nickname} Sucks to be you, I just clutched it out and denied your blackjack. You keep your bet`
             );
-            await msg.channel.send(`${GIFS.lossStreakGif}`);
+            if (user.showGameGifs) await msg.channel.send(`${GIFS.lossStreakGif}`);
             user.state = user_state.none;
             user.bj.isDealingHand = false;
         }
@@ -308,7 +308,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
                 'en-US'
             )}** ${boneSymbol}`;
             await msg.reply(str);
-            msg.channel.send(`${GIFS.youBustedGif}`);
+            if (user.showGameGifs) msg.channel.send(`${GIFS.youBustedGif}`);
             blackjack_game_end(user);
             return;
         } else {
@@ -398,7 +398,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
                 'en-US'
             )}** ${boneSymbol}`;
             await msg.reply(str);
-            msg.channel.send(`${GIFS.youBustedGif}`);
+            if (user.showGameGifs) msg.channel.send(`${GIFS.youBustedGif}`);
             blackjack_game_end(user);
             won = false;
         } else if (userSum == 21 && houseSum != 21) {
@@ -406,7 +406,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
             won = true;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`:black_joker: ${user.nickname}, **FUCK**, You won with **blackjack** and win **${prizeStr}** ${boneSymbol}`);
-            msg.channel.send(`${GIFS.toCashFlowGif}`);
+            if (user.showGameGifs) msg.channel.send(`${GIFS.toCashFlowGif}`);
         } else if (houseSum > 21) {
             prize = user.bj.bet;
             won = true;
@@ -414,12 +414,12 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
             await msg.reply(
                 `:black_joker: ${user.nickname}, **FUCK**, I busted... You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`
             );
-            msg.channel.send(`${GIFS.bustinMakesMeFeelGoodGif}`);
+            if (user.showGameGifs) msg.channel.send(`${GIFS.bustinMakesMeFeelGoodGif}`);
         } else if (userSum > houseSum) {
             prize = user.bj.bet;
             won = true;
             await msg.reply(`${user.nickname}, Your hand beats mine. You win **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`);
-            msg.channel.send(`${GIFS.toCashFlowGif}`);
+            if (user.showGameGifs) msg.channel.send(`${GIFS.toCashFlowGif}`);
         } else if (userSum == houseSum) {
             won = false;
             await msg.reply(`${user.nickname}, It's a draw. You get your bet back ${EMOJIS.cringeEmoji}`);
@@ -427,7 +427,7 @@ async function blackjack_game_continue(user: user_account, msg: Discord.Message,
             prize = -user.bj.bet;
             won = false;
             await msg.reply(`${user.nickname}, My hand beats yours. You lose **${user.bj.bet.toLocaleString('en-US')}** ${boneSymbol}`);
-            msg.channel.send(`${GIFS.youBustedGif}`);
+            if (user.showGameGifs) msg.channel.send(`${GIFS.youBustedGif}`);
         }
         blackjack_game_end(user);
         user.add_money(prize);
