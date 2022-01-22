@@ -56,8 +56,8 @@ async function update_stock_callback(stock: stock_position, priceData: any) {
 
 export async function update_user_stock_prices(userGuilds: user_guild[]) {
     while (true) {
-        //Maps a ticker name to an array of stocks that need to be updated so that we
-        //only fetch price data from finnhub once per ticker.
+        //Maps a ticker name to an array of stocks that need to be updated so that
+        //we don't have duplicate finnhub api calls for duplicate tickers.
         const updates = new Map<string, stock_position[]>();
         for (let guildIdx = 0; guildIdx < userGuilds.length; ++guildIdx) {
             let users = userGuilds[guildIdx].users;
