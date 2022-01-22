@@ -186,7 +186,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
         combos.sort((a, b) => {
             return b[1] - a[1];
         });
-        betBonus = Math.round(bet * 0.2 * (slotPoints[combos[0][0]] * 0.4 * combos[0][1]));
+        betBonus = Math.round(bet * 0.2 * (slotPoints[combos[0][0]] * 0.2 * combos[0][1]));
     }
 
     let prize = 0;
