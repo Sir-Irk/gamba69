@@ -48,7 +48,7 @@ export class stock_position {
     }
 }
 
-async function update_stock_callback(stock: stock_position, priceData: any) {
+async function update_stock_price(stock: stock_position, priceData: any) {
     if (priceData && priceData.c !== 0) {
         stock.pricePerShare = priceData.c;
     }
@@ -56,8 +56,8 @@ async function update_stock_callback(stock: stock_position, priceData: any) {
 
 export async function update_user_stock_prices(userGuilds: user_guild[]) {
     while (true) {
-        //Maps a ticker name to an array of stocks that need to be updated so that
-        //we don't have duplicate finnhub api calls for duplicate tickers.
+        //This maps user stocks to the ticker name so that we don't
+        //have duplicate finnhub api calls for duplicate tickers.
         const updates = new Map<string, stock_position[]>();
         for (let guildIdx = 0; guildIdx < userGuilds.length; ++guildIdx) {
             let users = userGuilds[guildIdx].users;
@@ -69,22 +69,18 @@ export async function update_user_stock_prices(userGuilds: user_guild[]) {
                     let s = u.stocks[i];
                     let updateObj = updates.get(s.ticker);
                     if (!updateObj) {
-                        //console.log(`Created: ${s.ticker}`);
                         updates.set(s.ticker, [s]);
                     } else {
                         updateObj.push(s);
-                        //console.log(`Added: ${s.ticker}`);
                     }
                 }
             }
         }
 
-        //for (let i = 0; i < updates.keys.length; ++i) {
         for (let [ticker, stocks] of updates.entries()) {
             get_stock_price(ticker).then((r) => {
                 for (let i = 0; i < stocks.length; ++i) {
-                    let s = stocks[i];
-                    update_stock_callback(s, r);
+                    update_stock_price(stocks[i], r);
                 }
             });
         }
