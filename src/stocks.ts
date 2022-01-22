@@ -51,15 +51,14 @@ export class stock_position {
 async function update_stock_callback(stock: stock_position, priceData: any) {
     if (priceData && priceData.c !== 0) {
         stock.pricePerShare = priceData.c;
-        console.log(`Stock ${stock.ticker} updated`);
     }
 }
 
 export async function update_user_stock_prices(userGuilds: user_guild[]) {
     while (true) {
-        console.time('User stock update');
+        //Maps a ticker name to an array of stocks that need to be updated so that we
+        //only fetch price data from finnhub once per ticker.
         const updates = new Map<string, stock_position[]>();
-
         for (let guildIdx = 0; guildIdx < userGuilds.length; ++guildIdx) {
             let users = userGuilds[guildIdx].users;
 
@@ -90,7 +89,6 @@ export async function update_user_stock_prices(userGuilds: user_guild[]) {
             });
         }
 
-        console.timeEnd('User stock update');
         await delay(cfg.userStockUpdateInterval);
     }
 }
