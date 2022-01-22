@@ -37,11 +37,11 @@ export async function dice_game(user: user_account, bet: number, msg: Discord.Me
     let prize = 0;
     if (sum0 > sum1) {
         if (dice0 == 6 && dice1 == 6) {
-            prize = bet;
+            prize = bet * 2;
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You rolled a **double 6** and win **${prizeStr}** ${boneSymbol}`);
         } else if (dice0 == dice1) {
-            prize = bet;
+            prize = Math.floor(bet * 1.5);
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You rolled a **double** and win **${prizeStr}** ${boneSymbol}`);
         } else {
@@ -49,12 +49,12 @@ export async function dice_game(user: user_account, bet: number, msg: Discord.Me
             const prizeStr = prize.toLocaleString('en-US');
             await msg.reply(`${EMOJIS.imBigEmoji} ${user.nickname}, You win **${prizeStr}** ${boneSymbol}`);
         }
-        await msg.channel.send(`${GIFS.toCashFlowGif}`);
+        msg.channel.send(`${GIFS.toCashFlowGif}`);
     } else if (sum1 > sum0) {
         prize = -bet;
         won = false;
         await msg.reply(`:skull_crossbones: ${user.nickname}, My bones! You lose **${bet.toLocaleString('en-US')}** ${boneSymbol}.`);
-        await msg.channel.send(`${GIFS.youBustedGif}`);
+        msg.channel.send(`${GIFS.youBustedGif}`);
     } else {
         won = false;
         await msg.reply(`${EMOJIS.cringeEmoji} ${user.nickname}, It's a tie... that's pretty cringe`);
