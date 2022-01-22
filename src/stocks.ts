@@ -73,8 +73,10 @@ export async function update_user_stock_prices(userGuilds: user_guild[]) {
 
         for (let [ticker, stocks] of updates.entries()) {
             get_stock_price(ticker).then((r) => {
-                for (let i = 0; i < stocks.length; ++i) {                 
-                    if (r?.c !== 0) stocks[i].pricePerShare = r.c; 
+                if(r?.c !== 0) {
+                    for (let i = 0; i < stocks.length; ++i) {                 
+                        stocks[i].pricePerShare = r.c; 
+                    }
                 }
             });
         }
