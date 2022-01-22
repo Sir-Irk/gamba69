@@ -48,12 +48,6 @@ export class stock_position {
     }
 }
 
-async function update_stock_price(stock: stock_position, priceData: any) {
-    if (priceData && priceData.c !== 0) {
-        stock.pricePerShare = priceData.c;
-    }
-}
-
 export async function update_user_stock_prices(userGuilds: user_guild[]) {
     while (true) {
         //This maps user stocks to the ticker name so that we don't
@@ -79,8 +73,8 @@ export async function update_user_stock_prices(userGuilds: user_guild[]) {
 
         for (let [ticker, stocks] of updates.entries()) {
             get_stock_price(ticker).then((r) => {
-                for (let i = 0; i < stocks.length; ++i) {
-                    update_stock_price(stocks[i], r);
+                for (let i = 0; i < stocks.length; ++i) {                 
+                    if (r?.c !== 0) stocks[i].pricePerShare = r.c; 
                 }
             });
         }
