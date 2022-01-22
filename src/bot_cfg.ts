@@ -22,10 +22,13 @@ export class bot_cfg {
     maxHorseRacesToRename: number;
     numHorsesPerRace: number;
     horseRetirementAge: number;
-    slotsGifsEnabled: boolean;
     maxStockPositions: number;
     userStockUpdateInterval: number;
     diceCooldown: number;
+
+    slotsGifsEnabled: boolean;
+    slotsRoundsBeforeCooldown: number;
+    slotsCooldown: number;
     constructor() {
         this.dailyBonus = 5000;
         this.dailyCollectionInterval = dayInMili;
@@ -35,9 +38,7 @@ export class bot_cfg {
         this.workSalaryMax = 10000;
         this.charityCollectionInterval = 5 * minInMili;
         this.charityAmountInBones = 69;
-        this.globalSlotPointsModifier = 0.5;
         this.bjMessageDelay = 1000;
-        this.slotsMessageDelay = 1500;
         this.horseBasePrice = 100000;
         this.maxHorsesPerUser = 3;
         this.maxHorseBets = 2;
@@ -49,9 +50,14 @@ export class bot_cfg {
         this.numHorsesPerRace = 6;
         this.horseAgeProgressionPerRace = 0.1;
         this.horseRetirementAge = 23;
-        this.slotsGifsEnabled = true;
         this.maxStockPositions = 5;
         this.userStockUpdateInterval = minInMili * 1;
+
+        this.slotsMessageDelay = 1500;
+        this.globalSlotPointsModifier = 1.0;
+        this.slotsGifsEnabled = true;
+        //this.slotsRoundsBeforeCooldown = 5;
+        //this.slotsCooldown = 5000;
     }
 }
 
