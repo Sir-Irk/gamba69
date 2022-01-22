@@ -316,6 +316,7 @@ client.on('messageCreate', async (msg) => {
         case 'togglegifs':
             {
                 user.showGameGifs = !user.showGameGifs;
+                await msg.reply(`Game GIFS have been turned ${user.showGameGifs ? '**on**' : '**off**'}\nThis only affects you.`);
             }
             break;
         case 'write':
