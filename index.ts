@@ -94,10 +94,10 @@ function get_log_date_string() {
     return `${mm}-${dd}-${yyyy}-${hh}h-${mm}m-${ss}s`;
 }
 
-export function log_error(message: string) {
+export function log_error(error: Error) {
     const dateString = get_log_date_string();
-    let path = `logs/ERROR_${get_random_string(6)}_${dateString}.log`;
-    fs.writeFileSync(path, message + '\n');
+    let path = `logs/ERROR_${dateString}_${get_random_string(6)}.log`;
+    fs.writeFileSync(path, `${error.stack}`);
 }
 
 function backup_user_data() {
@@ -107,14 +107,12 @@ function backup_user_data() {
     fs.writeFileSync(path, file);
 }
 
-/*
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function (err: Error) {
     backup_user_data();
-    log_error(err.toString());
+    log_error(err);
     console.log('Caught exception: ' + err);
     process.abort();
 });
-*/
 
 async function hourlyBackUp() {
     while (true) {
@@ -584,7 +582,7 @@ client.on('messageCreate', async (msg) => {
                     msg.reply(`**usage**: ?sell <horse name>`);
                     return;
                 }
-                const horse = find_horse(guild.horses, args.join());
+                const horse = find_horse(guild.horses, args.join(' '));
 
                 if (horse) {
                     if (horse.ownerId === user.id) {
