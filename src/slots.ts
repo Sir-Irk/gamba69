@@ -24,7 +24,7 @@ const slotMessages = [
     ],
 ];
 
-export let slotPoints = [1.25, 2, 3, 4, 5, 6];
+export let slotPoints = [1.5, 2, 3, 4, 6, 10];
 const slotWeights = [0.5, 0.45, 0.4, 0.35, 0.25, 0.2];
 for (let i = 0; i < slotPoints.length; ++i) {
     slotPoints[i] *= cfg.globalSlotPointsModifier;
