@@ -4,7 +4,7 @@ import { verify_bet, user_is_playing_game, delay, game_category, parse_bet } fro
 import { GIFS } from './media';
 import * as Discord from 'discord.js';
 import { user_account, user_state } from './user';
-import { client } from '..';
+import { client, log_error } from '..';
 
 const slotMessages = [
     [
@@ -71,16 +71,24 @@ export async function auto_slots(user: user_account, betStr: string, msg: Discor
             break;
         }
 
-        const msgRef = await slots_game(user, bet, msg, true);
+        let msgRef = null;
+        await slots_game(user, bet, msg, true)
+            .then((r) => {
+                msgRef = r;
+            })
+            .catch((r: Error) => {
+                log_error(r);
+            });
+
         await delay(3000);
         const channel: Discord.DMChannel = user.guildObj.slotsResultsChannel;
-        if (channel) {
+        if (channel && msgRef) {
             let str = '';
-            msgRef.forEach((m) => {
+            msgRef.forEach((m: Discord.Message) => {
                 str += m.content + '\n';
             });
             channel.send(str);
-            msgRef.forEach((m) => {
+            msgRef.forEach((m: Discord.Message) => {
                 m.delete();
             });
         }

@@ -113,14 +113,14 @@ let globalTestChannel: Discord.DMChannel = null;
 process.on('uncaughtException', async function (err: Error) {
     if (globalTestChannel) {
         //globalTestChannel.send('I just died to a fatal error! Please tell sir_irk about this.').then((m) => console.log('\nsent\n'));
-        await globalTestChannel.send('I just died to a fatal error! Please tell sir_irk about this.');
+        await globalTestChannel.send('I just had an error! Please tell sir_irk about this.');
     } else {
         console.log('\nMain channel was null\n');
     }
 
     backup_user_data();
     log_error(err);
-    process.abort();
+    //process.abort();
 });
 
 async function hourlyBackUp() {
@@ -400,7 +400,7 @@ client.on('messageCreate', async (msg) => {
 
         case 'bones':
             msg.reply(`You have **${user.bones.toLocaleString('en-US')}** ${boneSymbol}`);
-            if (Math.random() < 0.05) {
+            if (Math.random() < 0.0) {
                 await msg.channel.send(`${GIFS.bonesEqualDollarsGif}`);
             }
             break;
