@@ -310,7 +310,6 @@ client.on('messageCreate', async (msg) => {
             user.guildObj.slotsResultsChannel = resultsChannel;
         }
     }
-
     switch (command) {
         case 'squish':
             {
@@ -502,6 +501,11 @@ client.on('messageCreate', async (msg) => {
         case 'slots':
         case 'sl':
             {
+                if (user.id === '233860813662846976') {
+                    msg.reply('You are temporarily banned from this game');
+                    msg.delete();
+                }
+
                 /*
       if (msg.guildId !== `922243045787852890`) {
           await msg.reply(`Sorry this game is down for maintenance... Be back
@@ -528,6 +532,11 @@ client.on('messageCreate', async (msg) => {
         case 'roulette':
         case 'rl':
             {
+                if (user.id === '233860813662846976') {
+                    msg.reply('You are temporarily banned from this game');
+                    msg.delete();
+                }
+
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);
                     return;
@@ -565,13 +574,10 @@ client.on('messageCreate', async (msg) => {
 
         case 'dice':
             {
-                /*
                 if (user.id === '233860813662846976') {
-                    //msg.reply(`You are banned from this game for being cringe. And botting or something`);
+                    msg.reply('You are temporarily banned from this game');
                     msg.delete();
-                    return;
                 }
-                */
                 /*
                 if (msg.guildId !== `922243045787852890`) {
                     await msg.reply(`Sorry this game is down for maintenance... thank @meux`);
