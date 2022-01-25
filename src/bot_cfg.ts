@@ -29,6 +29,8 @@ export class bot_cfg {
     slotsGifsEnabled: boolean;
     slotsRoundsBeforeCooldown: number;
     slotsCooldown: number;
+    slotsAutoPlayPercentMax: number;
+    slotsAutoPlayCooldown: number;
     constructor() {
         this.dailyBonus = 5000;
         this.dailyCollectionInterval = dayInMili;
@@ -56,6 +58,8 @@ export class bot_cfg {
         this.slotsMessageDelay = 1500;
         this.globalSlotPointsModifier = 1.0;
         this.slotsGifsEnabled = true;
+        this.slotsAutoPlayPercentMax = 0.02;
+        this.slotsAutoPlayCooldown = 3000;
         //this.slotsRoundsBeforeCooldown = 5;
         //this.slotsCooldown = 5000;
     }

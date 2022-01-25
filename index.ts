@@ -10,7 +10,7 @@ import { user_account, user_guild, user_state } from './src/user';
 import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack';
 import { roulette_game, roulette_game_continue } from './src/russian_roulette';
 import { dice_game } from './src/dice';
-import { slots_game } from './src/slots';
+import { auto_slots, slots_game } from './src/slots';
 import { make_it_rain } from './src/rain';
 import { cfg } from './src/bot_cfg';
 import { dayInMili, hourInMili, minInMili } from './src/constants';
@@ -110,7 +110,7 @@ function backup_user_data() {
 process.on('uncaughtException', function (err: Error) {
     backup_user_data();
     log_error(err);
-    console.log('Caught exception: ' + err);
+
     process.abort();
 });
 
@@ -282,6 +282,14 @@ client.on('messageCreate', async (msg) => {
         guild.users.push(user);
     }
 
+    //TODO: per guild configuration for this
+    if (!guild.slotsResultsChannel && guild.id === '741435551357337692') {
+        const testChannelId = '935330410047623198';
+        const resultsChannel: Discord.DMChannel = (await client.channels.fetch(testChannelId)) as Discord.DMChannel;
+        if (!resultsChannel) process.exit();
+        user.guildObj.slotsResultsChannel = resultsChannel;
+    }
+
     switch (command) {
         case 'squish':
             {
@@ -304,14 +312,16 @@ client.on('messageCreate', async (msg) => {
             }
             break;
         case 'togglegifsg':
+        case 'tgg':
             {
-                if (user.id === '150097140448886784') {
+                if (user.id !== '150097140448886784') {
                     return;
                 }
                 cfg.slotsGifsEnabled = !cfg.slotsGifsEnabled;
             }
             break;
         case 'togglegifs':
+        case 'tg':
             {
                 user.showGameGifs = !user.showGameGifs;
                 await msg.reply(`Game GIFS have been turned ${user.showGameGifs ? '**on**' : '**off**'}\nThis only affects you.`);
@@ -445,6 +455,28 @@ client.on('messageCreate', async (msg) => {
                 make_it_rain(guild.users, user, bet, numUsers, msg);
             }
             break;
+        case 'stop':
+            {
+                if (!user.autoSlots) {
+                    msg.reply('You are not playing auto slots at the moment.');
+                    break;
+                }
+                user.autoSlots = false;
+                user.state = user_state.none;
+                msg.reply('Auto slots stopped');
+            }
+            break;
+        case 'autoslots':
+        case 'autosl':
+            {
+                if (args.length < 1) {
+                    msg.reply(`Error: need a bet amount(note ${Math.floor(cfg.slotsAutoPlayPercentMax * 100)}% of your bones max)`);
+                    return;
+                }
+
+                auto_slots(user, args[0], msg);
+            }
+            break;
         case 'slots':
         case 'sl':
             {
@@ -454,7 +486,10 @@ client.on('messageCreate', async (msg) => {
       soon`); return;
       }
       */
-
+                if (user.autoSlots) {
+                    msg.reply(`You cannot play slots while auto slots is running. Use **?stop** to end auto slots`);
+                    return;
+                }
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount`);
                     return;

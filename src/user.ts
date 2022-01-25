@@ -5,6 +5,7 @@ import { bet_pool, race_horse } from './horse_racing';
 import { cfg } from './bot_cfg';
 import { assert } from 'chai';
 import { stock_position } from './stocks';
+import * as Discord from 'discord.js';
 
 export class game_stats {
     played: number;
@@ -53,6 +54,8 @@ export class user_account {
     gameStats: game_stats[];
     horseBeingRenamed: race_horse;
     stocks: stock_position[];
+
+    autoSlots?: boolean;
     lastSlotsGameTime: number;
     showGameGifs: boolean = true;
     constructor(
@@ -146,6 +149,7 @@ export class user_guild {
     users: user_account[];
     houseBones: number;
 
+    //TODO: Pull the horse race stuff out into a class
     userRunningHorseBet: user_account;
     horseRaceIsTakingBets: boolean;
     horseRaceIsActive: boolean;
@@ -158,8 +162,9 @@ export class user_guild {
     horseOwners: user_account[];
     horsesInRace: race_horse[];
     horsesInQueue: race_horse[];
-
     horseBeingSold: boolean;
+
+    slotsResultsChannel: Discord.DMChannel = null;
 
     constructor(id: string) {
         this.id = id;

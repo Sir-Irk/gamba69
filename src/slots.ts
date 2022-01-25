@@ -1,9 +1,10 @@
 import { cfg } from './bot_cfg';
 import { boneSymbol, slotSymbols, slotBlanks } from './symbols';
-import { verify_bet, user_is_playing_game, delay, game_category } from './utils';
+import { verify_bet, user_is_playing_game, delay, game_category, parse_bet } from './utils';
 import { GIFS } from './media';
 import * as Discord from 'discord.js';
 import { user_account, user_state } from './user';
+import { client } from '..';
 
 const slotMessages = [
     [
@@ -47,18 +48,64 @@ function random_slot(weights: number[]): number {
     console.log('Random slot error');
 }
 
-export async function slots_game(user: user_account, bet: number, msg: Discord.Message): Promise<void> {
-    if (user_is_playing_game(user, msg) || !verify_bet(user, bet, msg)) return;
+export async function auto_slots(user: user_account, betStr: string, msg: Discord.Message) {
+    if (user_is_playing_game(user, msg)) return;
+
+    console.log('auto-slots started');
+    let resultMsg = null;
+    user.autoSlots = true;
+
+    while (user.autoSlots) {
+        const bet = parse_bet(user, betStr, msg);
+        if (!bet) {
+            user.autoSlots = false;
+            break;
+        }
+
+        const perc = bet / user.bones;
+        if (perc > cfg.slotsAutoPlayPercentMax + 0.0001) {
+            msg.reply(`You can bet a maximum of ${Math.floor(cfg.slotsAutoPlayPercentMax * 100)}% on auto-slots`);
+            user.autoSlots = false;
+            break;
+        } else if (!verify_bet(user, bet, msg)) {
+            user.autoSlots = false;
+            break;
+        }
+
+        const msgRef = await slots_game(user, bet, msg, true);
+        await delay(2000);
+        const channel: Discord.DMChannel = user.guildObj.slotsResultsChannel;
+        if (channel) {
+            for (let i = 0; i < msgRef.length; ++i) {
+                await channel.send(msgRef[i].content);
+                msgRef[i].delete();
+            }
+        }
+
+        await delay(cfg.slotsAutoPlayCooldown);
+    }
+}
+
+export async function slots_game(
+    user: user_account,
+    bet: number,
+    msg: Discord.Message,
+    autoMode?: boolean
+): Promise<[betMsg: Discord.Message, slotsMsg: Discord.Message, resultsMsg: Discord.Message]> {
+    if ((!user.autoSlots && user_is_playing_game(user, msg)) || !verify_bet(user, bet, msg)) return null;
     user.state = user_state.playingGame;
-    const showGifs = cfg.slotsGifsEnabled && user.showGameGifs;
+    const showGifs = cfg.slotsGifsEnabled && user.showGameGifs && !autoMode;
     const betStr = bet.toLocaleString('en-US');
+    let resultMsg: [Discord.Message, Discord.Message, Discord.Message] = [null, null, null];
+
     if (bet == user.bones) {
-        await msg.channel.send(
+        resultMsg[0] = await msg.channel.send(
             `${slotsEmoji} ${user.nickname} Slams their fat cock on the table and bets **all** of their **${betStr}** ${boneSymbol} and cranks the lever...`
         );
     } else {
-        await msg.channel.send(`${slotsEmoji} ${user.nickname} bets **${betStr}** ${boneSymbol} and cranks the lever...`);
+        resultMsg[0] = await msg.channel.send(`${slotsEmoji} ${user.nickname} bets **${betStr}** ${boneSymbol} and cranks the lever...`);
     }
+
     //let str = `${slotsEmoji} ${user.name} \n`;
     let str = ``;
     for (let y = 0; y < 3; ++y) {
@@ -115,7 +162,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
         }
         str += '\n';
     }
-    await msgRef.edit(str);
+    resultMsg[1] = await msgRef.edit(str);
     await delay(1000);
 
     let threeInARows = [];
@@ -194,7 +241,7 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
     let won = true;
     if (points > 0) {
         prize = Math.round(points * bet);
-        await msg.reply(
+        resultMsg[2] = await msg.reply(
             `${slotsEmoji} ${user.nickname}, EZ! You won **${prize.toLocaleString('en-US')}** ${boneSymbol}\n${slotSet[messageIdx]} ${
                 messages[messageIdx]
             }`
@@ -208,18 +255,21 @@ export async function slots_game(user: user_account, bet: number, msg: Discord.M
             won = false;
             const slotStr = `${slotSymbols[slotSetRoll][combos[0][0]]}`;
             const betStr = bet.toLocaleString('en-US');
-            await msg.reply(
+            resultMsg[2] = await msg.reply(
                 `${slotsEmoji} ${user.nickname}, You Lost **${betStr}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${slotStr} **combo**`
             );
         } else {
             prize = -bet;
             won = false;
-            await msg.reply(`${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`);
+            resultMsg[2] = await msg.reply(
+                `${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`
+            );
         }
         if (showGifs) msg.channel.send(`${GIFS.loseSlotsGif}`);
     }
 
     user.add_money(prize);
     user.update_stats(won, prize, game_category.slots);
-    user.state = user_state.none;
+    if (!autoMode) user.state = user_state.none;
+    return resultMsg;
 }
