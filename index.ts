@@ -283,11 +283,20 @@ client.on('messageCreate', async (msg) => {
     }
 
     //TODO: per guild configuration for this
-    if (!guild.slotsResultsChannel && guild.id === '741435551357337692') {
-        const testChannelId = '935330410047623198';
-        const resultsChannel: Discord.DMChannel = (await client.channels.fetch(testChannelId)) as Discord.DMChannel;
-        if (!resultsChannel) process.exit();
-        user.guildObj.slotsResultsChannel = resultsChannel;
+    if (DEBUG_MODE) {
+        if (!guild.slotsResultsChannel) {
+            const testChannelId = '935303619098595368';
+            const resultsChannel: Discord.DMChannel = (await client.channels.fetch(testChannelId)) as Discord.DMChannel;
+            if (!resultsChannel) process.exit();
+            user.guildObj.slotsResultsChannel = resultsChannel;
+        }
+    } else {
+        if (!guild.slotsResultsChannel && guild.id === '741435551357337692') {
+            const testChannelId = '935330410047623198';
+            const resultsChannel: Discord.DMChannel = (await client.channels.fetch(testChannelId)) as Discord.DMChannel;
+            if (!resultsChannel) process.exit();
+            user.guildObj.slotsResultsChannel = resultsChannel;
+        }
     }
 
     switch (command) {

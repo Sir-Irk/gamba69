@@ -51,7 +51,6 @@ function random_slot(weights: number[]): number {
 export async function auto_slots(user: user_account, betStr: string, msg: Discord.Message) {
     if (user_is_playing_game(user, msg)) return;
 
-    console.log('auto-slots started');
     let resultMsg = null;
     user.autoSlots = true;
 
@@ -73,13 +72,17 @@ export async function auto_slots(user: user_account, betStr: string, msg: Discor
         }
 
         const msgRef = await slots_game(user, bet, msg, true);
-        await delay(2000);
+        await delay(3000);
         const channel: Discord.DMChannel = user.guildObj.slotsResultsChannel;
         if (channel) {
-            for (let i = 0; i < msgRef.length; ++i) {
-                await channel.send(msgRef[i].content);
-                msgRef[i].delete();
-            }
+            let str = '';
+            msgRef.forEach((m) => {
+                str += m.content + '\n';
+            });
+            channel.send(str);
+            msgRef.forEach((m) => {
+                m.delete();
+            });
         }
 
         await delay(cfg.slotsAutoPlayCooldown);
