@@ -107,10 +107,19 @@ function backup_user_data() {
     fs.writeFileSync(path, file);
 }
 
-process.on('uncaughtException', function (err: Error) {
+const globalTestChannelID = DEBUG_MODE ? '928704074306682880' : '923887321517031434';
+let globalTestChannel: Discord.DMChannel = null;
+
+process.on('uncaughtException', async function (err: Error) {
+    if (globalTestChannel) {
+        //globalTestChannel.send('I just died to a fatal error! Please tell sir_irk about this.').then((m) => console.log('\nsent\n'));
+        await globalTestChannel.send('I just died to a fatal error! Please tell sir_irk about this.');
+    } else {
+        console.log('\nMain channel was null\n');
+    }
+
     backup_user_data();
     log_error(err);
-
     process.abort();
 });
 
@@ -138,6 +147,9 @@ initialize();
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    client.channels.fetch(globalTestChannelID).then((c) => {
+        globalTestChannel = c as Discord.DMChannel;
+    });
 });
 
 client.on('messageCreate', async (msg) => {
@@ -388,7 +400,7 @@ client.on('messageCreate', async (msg) => {
 
         case 'bones':
             msg.reply(`You have **${user.bones.toLocaleString('en-US')}** ${boneSymbol}`);
-            if (Math.random() < 0.2) {
+            if (Math.random() < 0.05) {
                 await msg.channel.send(`${GIFS.bonesEqualDollarsGif}`);
             }
             break;

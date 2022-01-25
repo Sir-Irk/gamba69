@@ -164,6 +164,7 @@ export class user_guild {
     horsesInQueue: race_horse[];
     horseBeingSold: boolean;
 
+    mainGambleChannel: Discord.DMChannel = null;
     slotsResultsChannel: Discord.DMChannel = null;
 
     constructor(id: string) {
