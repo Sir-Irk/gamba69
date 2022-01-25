@@ -504,6 +504,7 @@ client.on('messageCreate', async (msg) => {
                 if (user.id === '233860813662846976') {
                     msg.reply('You are temporarily banned from this game');
                     msg.delete();
+                    return;
                 }
 
                 /*
@@ -535,6 +536,7 @@ client.on('messageCreate', async (msg) => {
                 if (user.id === '233860813662846976') {
                     msg.reply('You are temporarily banned from this game');
                     msg.delete();
+                    return;
                 }
 
                 if (args.length < 1) {
@@ -577,6 +579,7 @@ client.on('messageCreate', async (msg) => {
                 if (user.id === '233860813662846976') {
                     msg.reply('You are temporarily banned from this game');
                     msg.delete();
+                    return;
                 }
                 /*
                 if (msg.guildId !== `922243045787852890`) {
