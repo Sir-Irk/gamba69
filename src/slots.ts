@@ -101,7 +101,12 @@ export async function auto_slots(user: user_account, betStr: string, msg: Discor
             break;
         }
 
-        let msgRef = await slots_game(user, bet, playChannel, true);
+        let msgRef = null;
+        await slots_game(user, bet, playChannel, true)
+            .then((m) => (msgRef = m))
+            .catch((r) => {
+                log_error(r);
+            });
 
         if (user.stoppingAutoSlots) {
             await stop_auto_slots(user, playChannel);
