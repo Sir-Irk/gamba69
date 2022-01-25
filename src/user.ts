@@ -55,8 +55,8 @@ export class user_account {
     horseBeingRenamed: race_horse;
     stocks: stock_position[];
 
-    autoSlots?: boolean;
-    lastSlotsGameTime: number;
+    autoSlots?: boolean = false;
+    stoppingAutoSlots?: boolean = false;
     showGameGifs: boolean = true;
     constructor(
         username: string,
@@ -85,7 +85,6 @@ export class user_account {
         this.numHorsesOwned = 0;
         this._nickname = null;
         this.stocks = [];
-        this.lastSlotsGameTime = 0;
     }
 
     public get_net_worth_in_stock() {

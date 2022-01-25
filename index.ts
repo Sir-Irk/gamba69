@@ -10,7 +10,7 @@ import { user_account, user_guild, user_state } from './src/user';
 import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack';
 import { roulette_game, roulette_game_continue } from './src/russian_roulette';
 import { dice_game } from './src/dice';
-import { auto_slots, slots_game } from './src/slots';
+import { auto_slots, slots_game, stop_auto_slots } from './src/slots';
 import { make_it_rain } from './src/rain';
 import { cfg } from './src/bot_cfg';
 import { dayInMili, hourInMili, minInMili } from './src/constants';
@@ -482,9 +482,10 @@ client.on('messageCreate', async (msg) => {
                     msg.reply('You are not playing auto slots at the moment.');
                     break;
                 }
-                user.autoSlots = false;
-                user.state = user_state.none;
-                msg.reply('Auto slots stopped');
+
+                msg.channel.send(`${user.nickname}, Auto slots stopping...`);
+                user.stoppingAutoSlots = true;
+                //await stop_auto_slots(user, msg.channel as Discord.DMChannel);
             }
             break;
         case 'autoslots':
@@ -519,7 +520,7 @@ client.on('messageCreate', async (msg) => {
                 let bet = parse_bet(user, args[0], msg);
 
                 if (bet > 0) {
-                    await slots_game(user, bet, msg);
+                    await slots_game(user, bet, msg.channel as Discord.DMChannel);
                     write_user_data_json(user);
                 }
             }

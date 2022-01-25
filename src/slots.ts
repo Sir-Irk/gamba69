@@ -1,6 +1,14 @@
 import { cfg } from './bot_cfg';
 import { boneSymbol, slotSymbols, slotBlanks } from './symbols';
-import { verify_bet, user_is_playing_game, delay, game_category, parse_bet } from './utils';
+import {
+    verify_bet,
+    user_is_playing_game,
+    delay,
+    game_category,
+    parse_bet,
+    user_is_playing_game_channel,
+    verify_bet_channel,
+} from './utils';
 import { GIFS } from './media';
 import * as Discord from 'discord.js';
 import { user_account, user_state } from './user';
@@ -48,11 +56,33 @@ function random_slot(weights: number[]): number {
     console.log('Random slot error');
 }
 
+export async function stop_auto_slots(user: user_account, channel: Discord.DMChannel) {
+    user.autoSlots = false;
+    user.state = user_state.none;
+    user.stoppingAutoSlots = false;
+    await channel.send(`${user.nickname}, auto slots have been stopped`);
+}
+
+export async function delete_slots_messages(channel: Discord.DMChannel, msgRef: Discord.Message[]) {
+    if (channel) {
+        let str = '';
+        msgRef.forEach((m: Discord.Message) => {
+            str += m.content + '\n';
+        });
+        channel.send(str);
+        msgRef.forEach((m: Discord.Message) => {
+            m.delete();
+        });
+    }
+}
+
 export async function auto_slots(user: user_account, betStr: string, msg: Discord.Message) {
     if (user_is_playing_game(user, msg)) return;
 
     let resultMsg = null;
     user.autoSlots = true;
+
+    const playChannel: Discord.DMChannel = msg.channel as Discord.DMChannel;
 
     while (user.autoSlots) {
         const bet = parse_bet(user, betStr, msg);
@@ -71,28 +101,15 @@ export async function auto_slots(user: user_account, betStr: string, msg: Discor
             break;
         }
 
-        let msgRef = null;
-        await slots_game(user, bet, msg, true)
-            .then((r) => {
-                msgRef = r;
-            })
-            .catch((r: Error) => {
-                log_error(r);
-            });
+        let msgRef = await slots_game(user, bet, playChannel, true);
 
+        if (user.stoppingAutoSlots) {
+            await stop_auto_slots(user, playChannel);
+            return;
+        }
         await delay(3000);
         const channel: Discord.DMChannel = user.guildObj.slotsResultsChannel;
-        if (channel && msgRef) {
-            let str = '';
-            msgRef.forEach((m: Discord.Message) => {
-                str += m.content + '\n';
-            });
-            channel.send(str);
-            msgRef.forEach((m: Discord.Message) => {
-                m.delete();
-            });
-        }
-
+        delete_slots_messages(channel, msgRef);
         await delay(cfg.slotsAutoPlayCooldown);
     }
 }
@@ -100,21 +117,22 @@ export async function auto_slots(user: user_account, betStr: string, msg: Discor
 export async function slots_game(
     user: user_account,
     bet: number,
-    msg: Discord.Message,
+    channel: Discord.DMChannel,
     autoMode?: boolean
 ): Promise<[betMsg: Discord.Message, slotsMsg: Discord.Message, resultsMsg: Discord.Message]> {
-    if ((!user.autoSlots && user_is_playing_game(user, msg)) || !verify_bet(user, bet, msg)) return null;
+    if ((!user.autoSlots && user_is_playing_game_channel(user, channel)) || !verify_bet_channel(user, bet, channel)) return null;
+
     user.state = user_state.playingGame;
     const showGifs = cfg.slotsGifsEnabled && user.showGameGifs && !autoMode;
     const betStr = bet.toLocaleString('en-US');
     let resultMsg: [Discord.Message, Discord.Message, Discord.Message] = [null, null, null];
 
     if (bet == user.bones) {
-        resultMsg[0] = await msg.channel.send(
+        resultMsg[0] = await channel.send(
             `${slotsEmoji} ${user.nickname} Slams their fat cock on the table and bets **all** of their **${betStr}** ${boneSymbol} and cranks the lever...`
         );
     } else {
-        resultMsg[0] = await msg.channel.send(`${slotsEmoji} ${user.nickname} bets **${betStr}** ${boneSymbol} and cranks the lever...`);
+        resultMsg[0] = await channel.send(`${slotsEmoji} ${user.nickname} bets **${betStr}** ${boneSymbol} and cranks the lever...`);
     }
 
     //let str = `${slotsEmoji} ${user.name} \n`;
@@ -127,7 +145,7 @@ export async function slots_game(
         str += '\n';
     }
     //let msgRef =
-    const msgRef = await msg.reply(str);
+    const msgRef = await channel.send(str);
 
     const slotSetRoll = Math.floor(Math.random() * slotSymbols.length);
     //const slotSetRoll = 1;
@@ -252,12 +270,12 @@ export async function slots_game(
     let won = true;
     if (points > 0) {
         prize = Math.round(points * bet);
-        resultMsg[2] = await msg.reply(
+        resultMsg[2] = await channel.send(
             `${slotsEmoji} ${user.nickname}, EZ! You won **${prize.toLocaleString('en-US')}** ${boneSymbol}\n${slotSet[messageIdx]} ${
                 messages[messageIdx]
             }`
         );
-        if (showGifs) msg.channel.send(`${GIFS.winSlotsGif}`);
+        if (showGifs) channel.send(`${GIFS.winSlotsGif}`);
     } else {
         const lossStr = (bet - betBonus).toLocaleString('en-US');
         const bonusStr = betBonus.toLocaleString('en-US');
@@ -266,17 +284,17 @@ export async function slots_game(
             won = false;
             const slotStr = `${slotSymbols[slotSetRoll][combos[0][0]]}`;
             const betStr = bet.toLocaleString('en-US');
-            resultMsg[2] = await msg.reply(
+            resultMsg[2] = await channel.send(
                 `${slotsEmoji} ${user.nickname}, You Lost **${betStr}** ${boneSymbol} but won back **${bonusStr}** ${boneSymbol} from a ${slotStr} **combo**`
             );
         } else {
             prize = -bet;
             won = false;
-            resultMsg[2] = await msg.reply(
+            resultMsg[2] = await channel.send(
                 `${slotsEmoji} ${user.nickname}, Damn, too bad... You lost **${bet.toLocaleString('en-US')}** ${boneSymbol}`
             );
         }
-        if (showGifs) msg.channel.send(`${GIFS.loseSlotsGif}`);
+        if (showGifs) channel.send(`${GIFS.loseSlotsGif}`);
     }
 
     user.add_money(prize);

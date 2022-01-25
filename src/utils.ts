@@ -49,6 +49,28 @@ export function add_money_to_user(user: user_account, amount: number) {
     user.guildObj.houseBones -= amount;
 }
 
+//TODO: refactor this duplication.
+export function verify_bet_channel(user: user_account, bet: number, channel: Discord.DMChannel): boolean {
+    let str = `${user.nickname}, `;
+    if (isNaN(bet) || bet == null || bet <= 0) {
+        for (let i = 0; i < 10; ++i) {
+            str += `${EMOJIS.doubtfulSharkEmoji}`;
+        }
+        if (channel) channel.send(str);
+        return false;
+    }
+    if (user.bones < bet) {
+        if (channel)
+            channel.send(
+                `${user.nickname}, you don't have enough bones to bet **${bet.toLocaleString(
+                    'en-US'
+                )}**. You have **${user.bones.toLocaleString('en-US')}** ${boneSymbol}`
+            );
+        return false;
+    }
+    return true;
+}
+
 export function verify_bet(user: user_account, bet: number, msg: Discord.Message<boolean>): boolean {
     let str = `${user.nickname}, `;
     if (isNaN(bet) || bet == null || bet <= 0) {
@@ -70,10 +92,20 @@ export function verify_bet(user: user_account, bet: number, msg: Discord.Message
     return true;
 }
 
-export function user_is_playing_game(user: user_account, msg: Discord.Message<boolean>, printError: boolean = true): boolean {
+export function user_is_playing_game(user: user_account, msg: Discord.Message, printError: boolean = true): boolean {
     if (user.state !== user_state.none) {
         if (printError) {
             msg.reply(`${user.nickname}, You are already playing a game`);
+        }
+        return true;
+    }
+    return false;
+}
+
+export function user_is_playing_game_channel(user: user_account, channel: Discord.DMChannel, printError: boolean = true): boolean {
+    if (user.state !== user_state.none) {
+        if (printError) {
+            channel.send(`${user.nickname}, You are already playing a game`);
         }
         return true;
     }
