@@ -64,7 +64,7 @@ export async function stop_auto_slots(user: user_account, channel: Discord.DMCha
 }
 
 export async function delete_slots_messages(channel: Discord.DMChannel, msgRef: Discord.Message[]) {
-    if (channel) {
+    if (channel && msgRef) {
         let str = '';
         msgRef.forEach((m: Discord.Message) => {
             str += m.content + '\n';
