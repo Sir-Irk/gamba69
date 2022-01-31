@@ -58,7 +58,7 @@ export class bot_cfg {
         this.slotsMessageDelay = 1500;
         this.globalSlotPointsModifier = 1.0;
         this.slotsGifsEnabled = true;
-        this.slotsAutoPlayPercentMax = 0.02;
+        this.slotsAutoPlayPercentMax = 0.01;
         this.slotsAutoPlayCooldown = 3000;
         //this.slotsRoundsBeforeCooldown = 5;
         //this.slotsCooldown = 5000;
