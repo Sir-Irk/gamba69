@@ -253,7 +253,7 @@ client.on('messageCreate', async (msg) => {
     }
 });
 
-const casinoChannel = `<#923887321517031434>`;
+const casinoChannel = `<#963799010622193674>`;
 const noGambaPic = `https://i.imgur.com/I49CZW7.png`;
 client.on('messageCreate', async (msg) => {
     if (DEBUG_MODE && msg.guildId !== `922243045787852890`) {
@@ -306,7 +306,7 @@ client.on('messageCreate', async (msg) => {
         }
     } else {
         if (!guild.slotsResultsChannel && guild.id === '741435551357337692') {
-            const testChannelId = '935330410047623198';
+            const testChannelId = '963807047202275409';
             const resultsChannel: Discord.DMChannel = (await client.channels.fetch(testChannelId)) as Discord.DMChannel;
             if (!resultsChannel) process.exit();
             user.guildObj.slotsResultsChannel = resultsChannel;
