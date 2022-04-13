@@ -490,6 +490,9 @@ client.on('messageCreate', async (msg) => {
         case 'autoslots':
         case 'autosl':
             {
+                msg.reply('Autoslots is currently disabled');
+                return;
+
                 if (args.length < 1) {
                     msg.reply(`Error: need a bet amount(note ${Math.floor(cfg.slotsAutoPlayPercentMax * 100)}% of your bones max)`);
                     return;
@@ -501,13 +504,12 @@ client.on('messageCreate', async (msg) => {
         case 'slots':
         case 'sl':
             {
+                /*
                 if (user.id === '233860813662846976') {
                     msg.reply('You are temporarily banned from this game');
                     msg.delete();
                     return;
                 }
-
-                /*
       if (msg.guildId !== `922243045787852890`) {
           await msg.reply(`Sorry this game is down for maintenance... Be back
       soon`); return;
