@@ -118,8 +118,8 @@ process.on('uncaughtException', async function (err: Error) {
         console.log('\nMain channel was null\n');
     }
 
-    backup_user_data();
-    log_error(err);
+    //backup_user_data();
+    //log_error(err);
     //process.abort();
 });
 
@@ -138,7 +138,7 @@ async function initialize() {
     //});
     console.log('finished loading users');
     load_nicknames(userGuilds);
-    hourlyBackUp();
+    //hourlyBackUp();
     update_user_stock_prices(userGuilds);
     botInitialized = true;
 }
