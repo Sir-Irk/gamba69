@@ -118,6 +118,8 @@ process.on('uncaughtException', async function (err: Error) {
         console.log('\nMain channel was null\n');
     }
 
+    console.log(err);
+
     //backup_user_data();
     //log_error(err);
     //process.abort();
