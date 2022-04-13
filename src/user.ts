@@ -85,7 +85,6 @@ export class user_account {
         this.numHorsesOwned = 0;
         this._nickname = null;
         this.stocks = [];
-        this.gameStats = [];
     }
 
     public get_net_worth_in_stock() {

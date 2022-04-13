@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import * as fs from 'fs';
 const config = JSON.parse(readFileSync('config.json').toString());
 
-import { user_account, user_guild, user_state } from './src/user';
+import { game_stats, user_account, user_guild, user_state } from './src/user';
 import { blackjack_game_continue, blackjack_game, blackjack_option } from './src/blackjack';
 import { roulette_game, roulette_game_continue } from './src/russian_roulette';
 import { dice_game } from './src/dice';
@@ -46,6 +46,7 @@ import {
     parse_stock_sell_share_count,
     approx_eq,
     money_str,
+    game_category,
 } from './src/utils';
 
 import {
@@ -293,7 +294,12 @@ client.on('messageCreate', async (msg) => {
     if (!user) {
         const nickname = await get_nickname(msg.author.username, msg);
         user = new user_account(msg.author.username, msg.author.id, nickname, msg.guild.id, msg.guild.name, guild, 0);
+        user.gameStats = [];
+        for (let i = 0; i < game_category.count; ++i) {
+            user.gameStats.push(new game_stats(i as game_category));
+        }
         guild.users.push(user);
+        write_user_data_json(user);
     }
 
     //TODO: per guild configuration for this
