@@ -107,7 +107,7 @@ function backup_user_data() {
     fs.writeFileSync(path, file);
 }
 
-const globalTestChannelID = DEBUG_MODE ? '928704074306682880' : '923887321517031434';
+const globalTestChannelID = DEBUG_MODE ? '928704074306682880' : '963799010622193674';
 let globalTestChannel: Discord.DMChannel = null;
 
 process.on('uncaughtException', async function (err: Error) {
