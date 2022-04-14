@@ -22,6 +22,8 @@ const Axios = require('axios').default;
 export const DEBUG_MODE: boolean = false;
 export const DEBUG_TIMING: boolean = false;
 
+const ADMIN_ID: string = '150097140448886784';
+
 import {
     userGuilds,
     get_guild,
@@ -95,10 +97,12 @@ function get_log_date_string() {
     return `${mm}-${dd}-${yyyy}-${hh}h-${mm}m-${ss}s`;
 }
 
+let lastErrorLogged: string = null;
 export function log_error(error: Error) {
     const dateString = get_log_date_string();
     let path = `logs/main.log`;
-    fs.appendFileSync(path, `\n==========================\n${dateString}\n${error.stack}`);
+    lastErrorLogged = `\n==========================\n${dateString}\n${error.stack}`;
+    fs.appendFileSync(path, lastErrorLogged);
 }
 
 function backup_user_data() {
@@ -316,10 +320,24 @@ client.on('messageCreate', async (msg) => {
         }
     }
     switch (command) {
+        case 'error':
+            {
+                if (user.id !== ADMIN_ID) {
+                    return;
+                }
+
+                if (!lastErrorLogged) {
+                    await msg.reply('There were no errors logged since last restart');
+                } else {
+                    await msg.reply(`Last error logged: \n${lastErrorLogged}`);
+                }
+            }
+            break;
+
         case 'togglegifsg':
         case 'tgg':
             {
-                if (user.id !== '150097140448886784') {
+                if (user.id !== ADMIN_ID) {
                     return;
                 }
                 cfg.slotsGifsEnabled = !cfg.slotsGifsEnabled;
@@ -334,7 +352,7 @@ client.on('messageCreate', async (msg) => {
             break;
         case 'write':
             {
-                if (user.id !== '150097140448886784') {
+                if (user.id !== ADMIN_ID) {
                     return;
                 }
                 guild.users.forEach((u: user_account) => {
@@ -628,7 +646,7 @@ client.on('messageCreate', async (msg) => {
         case `sell`:
             {
                 /*
-                if (user.id !== '150097140448886784') {
+                if (user.id !== ADMIN_ID) {
                     msg.reply(`Sorry that command is down for bug fixing. Try again later`);
                     return;
                 }
