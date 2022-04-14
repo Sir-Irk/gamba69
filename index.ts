@@ -316,26 +316,6 @@ client.on('messageCreate', async (msg) => {
         }
     }
     switch (command) {
-        case 'squish':
-            {
-                if (user.id !== '150097140448886784') {
-                    return;
-                }
-
-                const factor = 0.01;
-                for (let i = 0; i < guild.users.length; ++i) {
-                    const user = guild.users[i];
-                    if (user.bones < 100000000) continue;
-                    user.bones = Math.max(1000000, Math.floor(user.bones * factor));
-                    for (let j = 0; j < user.stocks.length; ++j) {
-                        const stock = user.stocks[j];
-                        if (stock.numShares < 5) continue;
-                        stock.numShares *= factor;
-                    }
-                }
-                await msg.reply('Squished');
-            }
-            break;
         case 'togglegifsg':
         case 'tgg':
             {
