@@ -97,8 +97,8 @@ function get_log_date_string() {
 
 export function log_error(error: Error) {
     const dateString = get_log_date_string();
-    let path = `logs/ERROR_${dateString}_${get_random_string(6)}.log`;
-    fs.writeFileSync(path, `${error.stack}`);
+    let path = `logs/main.log`;
+    fs.appendFileSync(path, `\n==========================\n${dateString}\n${error.stack}`);
 }
 
 function backup_user_data() {
@@ -120,9 +120,9 @@ process.on('uncaughtException', async function (err: Error) {
     }
 
     console.log(err);
+    log_error(err);
 
     //backup_user_data();
-    //log_error(err);
     //process.abort();
 });
 
