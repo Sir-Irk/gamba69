@@ -294,10 +294,7 @@ client.on('messageCreate', async (msg) => {
     if (!user) {
         const nickname = await get_nickname(msg.author.username, msg);
         user = new user_account(msg.author.username, msg.author.id, nickname, msg.guild.id, msg.guild.name, guild, 0);
-        user.gameStats = [];
-        for (let i = 0; i < game_category.count; ++i) {
-            user.gameStats.push(new game_stats(i as game_category));
-        }
+
         guild.users.push(user);
         write_user_data_json(user);
     }

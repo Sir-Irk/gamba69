@@ -85,6 +85,10 @@ export class user_account {
         this.numHorsesOwned = 0;
         this._nickname = null;
         this.stocks = [];
+        this.gameStats = [];
+        for (let i = 0; i < game_category.count; ++i) {
+            this.gameStats.push(new game_stats(i as game_category));
+        }
     }
 
     public get_net_worth_in_stock() {
