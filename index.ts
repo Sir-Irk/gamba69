@@ -316,6 +316,12 @@ client.on('messageCreate', async (msg) => {
         }
     }
     switch (command) {
+        case 'error':
+            {
+                throw 'This is a test';
+            }
+            break;
+
         case 'togglegifsg':
         case 'tgg':
             {
